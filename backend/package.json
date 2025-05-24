@@ -1,0 +1,40 @@
+{
+  "name": "beautyhub",
+  "version": "1.0.0",
+  "description": "Backend para plataforma SaaS de agendamento de serviços em salões de beleza, permitindo gerenciamento de clientes, profissionais e administradores com autenticação via Firebase e APIs RESTful construídas em Node.js com Express.",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Otavio-Emanoel/SaaS-Salao-Beleza.git"
+  },
+  "author": "Otavio Emanoel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Otavio-Emanoel/SaaS-Salao-Beleza/issues"
+  },
+  "keywords": [
+    "saas",
+    "backend",
+    "nodejs",
+    "express",
+    "typescript",
+    "firebase",
+    "firestore",
+    "authentication",
+    "beauty-salon",
+    "appointment",
+    "scheduling",
+    "api",
+    "rest",
+    "platform",
+    "booking",
+    "services",
+    "management"
+  ],
+  "homepage": "https://github.com/Otavio-Emanoel/SaaS-Salao-Beleza#readme"
+}
