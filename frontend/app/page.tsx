@@ -24,7 +24,7 @@ export default function HomePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-[#FF96B2]"
+                  className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold"
                 >
                   Fazer Login
                 </Button>
