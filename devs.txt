@@ -29,7 +29,6 @@
 
 - Dashboard (Painel)
 
-
 - Meu salão (Gerenciar perfil do salão)
 
 - Agendamentos (Agendamentos de serviços para clientes )

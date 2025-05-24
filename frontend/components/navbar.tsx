@@ -65,9 +65,9 @@ export function Navbar() {
       return (
         <>
           <Link href="/dashboard" className="text-[#313131] hover:text-[#FF96B2]">Dashboard</Link>
-          <Link href="/meu-salao" className="text-[#313131] hover:text-[#FF96B2]">Meu Salão</Link>
+          <Link href="/my-salon" className="text-[#313131] hover:text-[#FF96B2]">Meu Salão</Link>
           <Link href="/appoint" className="text-[#313131] hover:text-[#FF96B2]">Agendamentos</Link>
-          <Link href="/servicos" className="text-[#313131] hover:text-[#FF96B2]">Serviços</Link>
+          <Link href="/services" className="text-[#313131] hover:text-[#FF96B2]">Serviços</Link>
           <Link href="/report" className="text-[#313131] hover:text-[#FF96B2]">Relatórios</Link>
         </>
       )
