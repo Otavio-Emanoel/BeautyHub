@@ -1,0 +1,39 @@
+# Usuário # 
+
+- Início 
+
+- Explorar ---> (Lugar onde o usuário vai encontrar os salões)
+
+- Serviços ---> (Especialidade de serviços de cada salão e de profissionais a parte ) --> (Faça login para fazer um agendamento)
+
+- Meus Agendamentos ---> (Histórico / avaliações)
+
+- Área do Usuario (Login, Edição de perfil nome, telefone, foto, etc.)
+
+
+
+# Profissionais (Independentes) #
+
+- Área do profissional (Dashboard)
+
+- Agendamentos (Agendamentos de serviços para clientes )
+
+- Serviços (Informações, especialidades e formações do profissional)
+
+- Relatórios (Feedbacks dos clientes)
+
+
+
+
+# ADM do salão #
+
+- Dashboard (Painel)
+
+- Meu salão (Gerenciar perfil do salão)
+
+- Agendamentos (Agendamentos de serviços para clientes )
+
+- Serviços (Especialidades e formações do salão)
+
+- Relatórios (Feedbacks dos clientes)
+

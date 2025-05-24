@@ -15,11 +15,14 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Calendar className="w-8 h-8 text-[#FF96B2]" />
-            <span className="text-xl font-bold text-[#313131]">BeautyBook</span>
+            <span className="text-xl font-bold text-[#313131]">NOME</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link href="/" className="text-[#313131] hover:text-[#FF96B2] transition-colors">
+              Início
+            </Link>
             <Link href="/salons" className="text-[#313131] hover:text-[#FF96B2] transition-colors">
               Salões
             </Link>
@@ -27,7 +30,7 @@ export function Navbar() {
               Serviços
             </Link>
             <Link href="/about" className="text-[#313131] hover:text-[#FF96B2] transition-colors">
-              Sobre
+              Meus Agendamentos
             </Link>
             <Link href="/contact" className="text-[#313131] hover:text-[#FF96B2] transition-colors">
               Contato
