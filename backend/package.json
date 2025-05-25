@@ -4,7 +4,7 @@
   "description": "Backend para plataforma SaaS de agendamento de serviços em salões de beleza, permitindo gerenciamento de clientes, profissionais e administradores com autenticação via Firebase e APIs RESTful construídas em Node.js com Express.",
   "main": "src/server.ts",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -36,5 +36,19 @@
     "services",
     "management"
   ],
-  "homepage": "https://github.com/Otavio-Emanoel/SaaS-Salao-Beleza#readme"
+  "homepage": "https://github.com/Otavio-Emanoel/SaaS-Salao-Beleza#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.21",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
 }
