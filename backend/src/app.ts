@@ -11,8 +11,8 @@ import clientRoutes from './routes/clientRoutes';
 const app: Application = express();
 
 // Middlewares globais
-app.use(cors());                 // Permitir requisições CORS (ajuste conforme front)
-app.use(express.json());         // Parse JSON no corpo das requisições
+app.use(cors());
+app.use(express.json());
 
 // Rota para clientes
 app.use('/api/clients', clientRoutes);

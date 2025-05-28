@@ -30,3 +30,20 @@ export async function loginClient(req: Request, res: Response) {
     // O login é feito através do SDK do Firebase no frontend, que retorna um token JWT.
     return res.status(501).json({ error: "Login de cliente não implementado" });
 }
+
+export async function updateClientProfile(req: Request, res: Response) {
+    const uid = req.users?.uid;
+    const data = req.body;
+    // Verifica se o usuário está autenticado
+    if (!uid) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+    }
+
+    try {
+        // Atualiza apenas os campos enviados
+        await admin.firestore().collection('users').doc(uid).update(data);
+        res.status(200).json({ message: "Perfil atualizado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao atualizar perfil", details: error.message });
+    }
+}
