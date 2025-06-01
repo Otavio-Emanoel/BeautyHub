@@ -16,7 +16,7 @@ export async function createAppointment(req: Request, res: Response ) {
             clientId,
             date,
             time,
-            notes: note || '',
+            notes: note,
             status: 'pending',
             createdAt: new Date().toISOString()
         });
