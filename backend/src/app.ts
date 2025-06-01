@@ -8,7 +8,7 @@ import './config/firebase';
 import clientRoutes from './routes/clientRoutes';
 import adminRoutes from './routes/adminRoutes';
 import professionalRoutes from './routes/professionalRoutes';
-
+import scheduleRoutes from './routes/scheduleRoutes';
 
 const app: Application = express();
 
@@ -30,5 +30,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('API do SaaS de agendamento de salões está funcionando!');
 });
 
+// Rota para agendamentos
+app.use('/api/schedules', scheduleRoutes);
 
 export default app;
