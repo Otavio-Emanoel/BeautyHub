@@ -97,3 +97,16 @@ export async function registerProfessional(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao cadastrar profissional", details: error.message });
     }
 }
+
+export async function updateSalonProfile(req: Request, res: Response) {
+    const { salonId, ...data } = req.body;
+    if (!salonId) {
+        return res.status(400).json({ error: "ID do salão não fornecido" });
+    }
+    try {
+        await admin.firestore().collection('salons').doc(salonId).update(data);
+        res.status(200).json({ message: "Perfil do salão atualizado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao atualizar perfil do salão", details: error.message });
+    }
+}
