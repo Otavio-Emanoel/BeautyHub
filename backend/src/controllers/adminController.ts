@@ -52,3 +52,48 @@ export async function createSalon(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao cadastrar salão", details: error.message });
     }
 }
+
+export async function registerProfessional(req: Request, res: Response) {
+    const { name, email, password, phone, specialty, salonId } = req.body;
+
+    if (!salonId) {
+        return res.status(400).json({ error: "ID do salão não fornecido" });
+    }
+
+    try {
+        // Cria o usuário profissional no Auth
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: name
+        })
+
+        await admin.firestore().collection('users').doc(userRecord.uid).set({
+            uid: userRecord.uid,
+            name,
+            email,
+            phone,
+            role: 'professional',
+            specialty,
+            salonId,
+            createdAt: new Date().toISOString()
+        })
+
+        // Adiciona referência na coleção professionals
+        await admin.firestore().collection('professionals').doc(userRecord.uid).set({
+            userId: userRecord.uid,
+            salonId,
+            name,
+            email,
+            phone,
+            specialty,
+            status: "active",
+            joinDate: new Date().toISOString()
+        });
+
+        res.status(201).json({ message: "Profissional cadastrado com sucesso", uid: userRecord.uid });
+
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao cadastrar profissional", details: error.message });
+    }
+}
