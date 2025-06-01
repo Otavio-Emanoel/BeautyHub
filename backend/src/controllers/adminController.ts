@@ -136,3 +136,45 @@ export async function dismissProfessional(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao dispensar profissional", details: error.message });
     }
 }
+
+export async function hireProfessional(req: Request, res: Response) {
+    const { salonId, name, email, phone, specialty } = req.body;
+    const uid = req.params.professionalId;
+    if (!uid) {
+        return res.status(400).json({ error: "UID do profissional não fornecido" });
+    }
+
+    if (!salonId) {
+        return res.status(400).json({ error: "ID do salão não fornecido" });
+    }
+
+    try {
+        // Atualiza o usuário profissional
+        await admin.firestore().collection('users').doc(uid).update({
+            role: 'professional',
+            name,
+            email,
+            phone,
+            specialty,
+            salonId,
+            status: 'active',
+            updatedAt: new Date().toISOString()
+        })
+
+        // Adiciona o profissional na coleção 'professionals'
+        await admin.firestore().collection('professionals').doc(uid).set({
+            userId: uid,
+            salonId,
+            name,
+            email,
+            phone,
+            specialty,
+            status: "active",
+            joinDate: new Date().toISOString()
+        });
+
+        res.status(200).json({ message: "Profissional contratado com sucesso", uid });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao contratar profissional", details: error.message });
+    }
+}
