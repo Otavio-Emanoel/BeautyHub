@@ -7,6 +7,7 @@ import './config/firebase';
 // Importa as rotas
 import clientRoutes from './routes/clientRoutes';
 import adminRoutes from './routes/adminRoutes';
+import professionalRoutes from './routes/professionalRoutes';
 
 
 const app: Application = express();
@@ -17,6 +18,9 @@ app.use(express.json());
 
 // Rota para clientes
 app.use('/api/client', clientRoutes);
+
+// Rota para profissionais
+app.use('/api/professional', professionalRoutes);
 
 // Rota para administradores
 app.use('/api/admin', adminRoutes);
