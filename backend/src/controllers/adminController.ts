@@ -110,3 +110,29 @@ export async function updateSalonProfile(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao atualizar perfil do salão", details: error.message });
     }
 }
+
+export async function dismissProfessional(req: Request, res: Response) {
+    const { professionalId } = req.params
+
+    if (!professionalId) {
+        return res.status(400).json({ error: "ID do profissional não fornecido" });
+    }
+
+    try {
+        // Atualiza o status e remove o vínculo com o salão na coleção 'users'
+        await admin.firestore().collection('users').doc(professionalId).update({
+            status: 'inactive',
+            salonId: admin.firestore.FieldValue.delete()
+        })
+
+        // Atualiza o status e remove o vínculo na coleção 'professionals'
+        await admin.firestore().collection('professionals').doc(professionalId).update({
+            status: "inactive",
+            salonId: admin.firestore.FieldValue.delete()
+        });
+
+        res.status(200).json({ message: "Profissional dispensado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao dispensar profissional", details: error.message });
+    }
+}
