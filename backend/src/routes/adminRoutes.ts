@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional } from "../controllers/adminController";
 import { authenticateToken } from "../middlewares/authMiddleware";
+import { createService } from "../controllers/serviceController";
 
 const router = Router();
 
@@ -21,5 +22,8 @@ router.post("/professional/:professionalId/hire", authenticateToken, hireProfess
 
 // Rota de edição de perfil do administrador
 router.put("/salon/profile", authenticateToken , updateSalonProfile);
+
+// Rota de criação de serviço
+router.post("/services", authenticateToken, createService);
 
 export default router;
