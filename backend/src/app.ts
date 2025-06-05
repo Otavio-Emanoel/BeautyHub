@@ -9,6 +9,7 @@ import clientRoutes from './routes/clientRoutes';
 import adminRoutes from './routes/adminRoutes';
 import professionalRoutes from './routes/professionalRoutes';
 import scheduleRoutes from './routes/scheduleRoutes';
+import salonRoutes from './routes/salonRoutes';
 
 const app: Application = express();
 
@@ -24,6 +25,9 @@ app.use('/api/professional', professionalRoutes);
 
 // Rota para administradores
 app.use('/api/admin', adminRoutes);
+
+// Rota para salões
+app.use('/api/salons', salonRoutes);
 
 // Rota padrão para checar se servidor está rodando
 app.get('/', (req: Request, res: Response) => {
