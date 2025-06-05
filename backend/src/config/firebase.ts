@@ -14,8 +14,8 @@ if (!admin.apps.length) {
 //   .then(() => console.log('Permissão OK para listar usuários'))
 //   .catch((err) => console.error('Erro de permissão:', err));
 
-admin.auth().createCustomToken('UID_DO_USUARIO')
-  .then(token => console.log(token));
+// admin.auth().createCustomToken('UID_DO_USUARIO')
+//   .then(token => console.log(token));
 
 const auth = admin.auth();
 const firestore = admin.firestore();
