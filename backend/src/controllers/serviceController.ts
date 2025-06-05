@@ -52,3 +52,18 @@ export async function listSalonServices(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao listar serviços", details: error.message });
     }
 }
+
+export async function deleteService(req: Request, res: Response) {
+    const {id} = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: "ID do serviço não fornecido" });
+    }
+
+    try {
+        await admin.firestore().collection('services').doc(id).delete();
+        res.status(200).json({ message: "Serviço deletado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao deletar serviço", details: error.message });
+    }
+}
