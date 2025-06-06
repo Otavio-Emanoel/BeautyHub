@@ -29,139 +29,139 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#EFEFEF] to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#EFEFEF] to-white dark:from-[#18181b] dark:to-[#232326] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <Calendar className="w-10 h-10 text-[#FF96B2]" />
-            <span className="text-2xl font-bold text-[#313131]">BeautyBook</span>
+            <Calendar className="w-10 h-10 text-[#FF96B2] dark:text-[#F472B6]" />
+            <span className="text-2xl font-bold text-[#313131] dark:text-white">BeautyBook</span>
           </Link>
         </div>
 
-        <Card className="border-0 shadow-xl">
+        <Card className="border-0 shadow-xl bg-white dark:bg-[#232326] w-full max-w-2xl mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-[#313131]">Criar conta</CardTitle>
-            <CardDescription>Junte-se à nossa plataforma</CardDescription>
+            <CardTitle className="text-2xl text-[#313131] dark:text-white">Criar conta</CardTitle>
+            <CardDescription className="dark:text-[#d1d5db]">Junte-se à nossa plataforma</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
+          <Label htmlFor="name" className="dark:text-[#d1d5db]">Nome completo</Label>
+          <div className="relative">
+            <User className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+            <Input
+              id="name"
+              type="text"
+              placeholder="Seu nome completo"
+              className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </div>
+          <Label htmlFor="email" className="dark:text-[#d1d5db]">E-mail</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                  />
-                </div>
+          <Label htmlFor="phone" className="dark:text-[#d1d5db]">Telefone</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="(11) 99999-9999"
+              className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+            />
+          </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="userType">Tipo de usuário</Label>
-                <Select onValueChange={(value) => setFormData({ ...formData, userType: value })}>
-                  <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
-                    <SelectValue placeholder="Selecione o tipo de usuário" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="client">Cliente</SelectItem>
-                    <SelectItem value="professional">Profissional</SelectItem>
-                    <SelectItem value="salon_admin">Administrador do Salão</SelectItem>
-                  </SelectContent>
-                </Select>
+          <Label htmlFor="userType" className="dark:text-[#d1d5db]">Tipo de usuário</Label>
+          <Select onValueChange={(value) => setFormData({ ...formData, userType: value })}>
+            <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]">
+              <SelectValue placeholder="Selecione o tipo de usuário" />
+            </SelectTrigger>
+            <SelectContent className="dark:bg-[#232326] dark:text-white">
+              <SelectItem value="client">Cliente</SelectItem>
+              <SelectItem value="professional">Profissional</SelectItem>
+              <SelectItem value="salon_admin">Administrador do Salão</SelectItem>
+            </SelectContent>
+          </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Sua senha"
-                    className="pl-10 pr-10 border-[#EFEFEF] focus:border-[#FF96B2]"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4 text-[#313131]/50" />
-                    ) : (
-                      <Eye className="w-4 h-4 text-[#313131]/50" />
-                    )}
-                  </button>
-                </div>
+          <Label htmlFor="password" className="dark:text-[#d1d5db]">Senha</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Sua senha"
+              className="pl-10 pr-10 border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-3"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+              ) : (
+                <Eye className="w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+              )}
+            </button>
+          </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Confirme sua senha"
-                    className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    required
-                  />
-                </div>
+          <Label htmlFor="confirmPassword" className="dark:text-[#d1d5db]">Confirmar senha</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-[#d1d5db]/50" />
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Confirme sua senha"
+              className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2] dark:bg-[#18181b] dark:border-[#232326] dark:text-white dark:focus:border-[#F472B6]"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              required
+            />
+          </div>
               </div>
 
-              <Button type="submit" className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">
-                Criar conta
+              <Button type="submit" className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#F472B6] dark:hover:bg-[#F472B6]/90">
+          Criar conta
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-[#313131]/70">
-                Já tem uma conta?{" "}
-                <Link href="/auth/login" className="text-[#FF96B2] hover:underline font-medium">
-                  Faça login
-                </Link>
+              <p className="text-sm text-[#313131]/70 dark:text-[#d1d5db]/70">
+          Já tem uma conta?{" "}
+          <Link href="/auth/login" className="text-[#FF96B2] hover:underline font-medium dark:text-[#F472B6]">
+            Faça login
+          </Link>
               </p>
             </div>
           </CardContent>

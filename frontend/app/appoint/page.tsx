@@ -158,9 +158,11 @@ export default function AppointmentsPage() {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-5 h-5 cursor-pointer transition-colors ${
-              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-            } ${readonly ? "cursor-default" : "hover:text-yellow-400"}`}
+            className={`w-5 h-5 cursor-pointer transition-colors
+              ${star <= rating
+                ? "fill-yellow-400 text-yellow-400 dark:fill-yellow-300 dark:text-yellow-300"
+                : "text-gray-300 dark:text-gray-600"}
+              ${readonly ? "cursor-default" : "hover:text-yellow-400 dark:hover:text-yellow-300"}`}
             onClick={() => !readonly && onRatingChange && onRatingChange(star)}
           />
         ))}
@@ -189,12 +191,12 @@ export default function AppointmentsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#EFEFEF] p-6">
+    <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#313131] mb-2">Meus Agendamentos</h1>
-          <p className="text-[#313131]/70">Gerencie seus agendamentos e avalie os serviços</p>
+          <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Meus Agendamentos</h1>
+          <p className="text-[#313131]/70 dark:text-gray-400">Gerencie seus agendamentos e avalie os serviços</p>
         </div>
 
         <Tabs defaultValue="upcoming" className="space-y-6">
@@ -208,13 +210,13 @@ export default function AppointmentsPage() {
             <div className="space-y-6">
               {upcomingAppointments.length > 0 ? (
                 upcomingAppointments.map((appointment) => (
-                  <Card key={appointment.id} className="border-0 shadow-lg">
+                  <Card key={appointment.id} className="border-0 shadow-lg dark:bg-[#232326]">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                           <Avatar className="w-16 h-16">
                             <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-[#FF96B2] text-white">
+                            <AvatarFallback className="bg-[#FF96B2] dark:bg-[#c0264b] text-white">
                               {appointment.professional
                                 .split(" ")
                                 .map((n) => n[0])
@@ -222,8 +224,8 @@ export default function AppointmentsPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-[#313131]">{appointment.service}</CardTitle>
-                            <CardDescription className="text-base">
+                            <CardTitle className="text-[#313131] dark:text-white">{appointment.service}</CardTitle>
+                            <CardDescription className="text-base dark:text-gray-400">
                               {appointment.salon} • {appointment.professional}
                             </CardDescription>
                           </div>
@@ -234,7 +236,7 @@ export default function AppointmentsPage() {
                     <CardContent className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Calendar className="w-4 h-4 mr-2" />
                             {new Date(appointment.date).toLocaleDateString("pt-BR", {
                               weekday: "long",
@@ -243,29 +245,29 @@ export default function AppointmentsPage() {
                               day: "numeric",
                             })}
                           </div>
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Clock className="w-4 h-4 mr-2" />
                             {appointment.time} • {appointment.duration}
                           </div>
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <MapPin className="w-4 h-4 mr-2" />
                             {appointment.address}
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Phone className="w-4 h-4 mr-2" />
                             {appointment.phone}
                           </div>
-                          <div className="text-2xl font-bold text-[#FF96B2]">R$ {appointment.price}</div>
+                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.price}</div>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2 pt-4 border-t border-[#EFEFEF]">
+                      <div className="flex flex-wrap gap-2 pt-4 border-t border-[#EFEFEF] dark:border-[#232326]">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                          className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
                         >
                           <MessageSquare className="w-4 h-4 mr-2" />
                           Contatar
@@ -274,14 +276,14 @@ export default function AppointmentsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                            className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
                           >
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Reagendar
                           </Button>
                         )}
                         {appointment.canCancel && (
-                          <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50">
+                          <Button variant="outline" size="sm" className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
                             <X className="w-4 h-4 mr-2" />
                             Cancelar
                           </Button>
@@ -291,12 +293,12 @@ export default function AppointmentsPage() {
                   </Card>
                 ))
               ) : (
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg dark:bg-[#232326]">
                   <CardContent className="text-center py-12">
-                    <Calendar className="w-16 h-16 mx-auto mb-4 text-[#313131]/30" />
-                    <h3 className="text-xl font-semibold text-[#313131] mb-2">Nenhum agendamento próximo</h3>
-                    <p className="text-[#313131]/70 mb-4">Que tal agendar um novo serviço?</p>
-                    <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Agendar Serviço</Button>
+                    <Calendar className="w-16 h-16 mx-auto mb-4 text-[#313131]/30 dark:text-gray-600" />
+                    <h3 className="text-xl font-semibold text-[#313131] dark:text-white mb-2">Nenhum agendamento próximo</h3>
+                    <p className="text-[#313131]/70 dark:text-gray-400 mb-4">Que tal agendar um novo serviço?</p>
+                    <Button className="bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white">Agendar Serviço</Button>
                   </CardContent>
                 </Card>
               )}
@@ -307,15 +309,15 @@ export default function AppointmentsPage() {
           <TabsContent value="history">
             <div className="space-y-6">
               {/* Filter */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg dark:bg-[#232326]">
                 <CardContent className="pt-6">
                   <div className="flex items-center space-x-4">
-                    <Label htmlFor="period">Filtrar por período:</Label>
+                    <Label htmlFor="period" className="dark:text-white">Filtrar por período:</Label>
                     <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-                      <SelectTrigger className="w-48 border-[#EFEFEF] focus:border-[#FF96B2]">
+                      <SelectTrigger className="w-48 border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#f472b6]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:bg-[#232326]">
                         <SelectItem value="all">Todos os períodos</SelectItem>
                         <SelectItem value="week">Última semana</SelectItem>
                         <SelectItem value="month">Último mês</SelectItem>
@@ -329,13 +331,13 @@ export default function AppointmentsPage() {
               {/* History List */}
               {filteredPastAppointments.length > 0 ? (
                 filteredPastAppointments.map((appointment) => (
-                  <Card key={appointment.id} className="border-0 shadow-lg">
+                  <Card key={appointment.id} className="border-0 shadow-lg dark:bg-[#232326]">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                           <Avatar className="w-16 h-16">
                             <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-[#FF96B2] text-white">
+                            <AvatarFallback className="bg-[#FF96B2] dark:bg-[#c0264b] text-white">
                               {appointment.professional
                                 .split(" ")
                                 .map((n) => n[0])
@@ -343,8 +345,8 @@ export default function AppointmentsPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-[#313131]">{appointment.service}</CardTitle>
-                            <CardDescription className="text-base">
+                            <CardTitle className="text-[#313131] dark:text-white">{appointment.service}</CardTitle>
+                            <CardDescription className="text-base dark:text-gray-400">
                               {appointment.salon} • {appointment.professional}
                             </CardDescription>
                           </div>
@@ -355,31 +357,31 @@ export default function AppointmentsPage() {
                     <CardContent className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Calendar className="w-4 h-4 mr-2" />
                             {new Date(appointment.date).toLocaleDateString("pt-BR")}
                           </div>
-                          <div className="flex items-center text-[#313131]/70">
+                          <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Clock className="w-4 h-4 mr-2" />
                             {appointment.time} • {appointment.duration}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-[#FF96B2]">R$ {appointment.price}</div>
+                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.price}</div>
                         </div>
                       </div>
 
                       {/* Rating Section */}
                       {appointment.status === "completed" && (
-                        <div className="pt-4 border-t border-[#EFEFEF]">
+                        <div className="pt-4 border-t border-[#EFEFEF] dark:border-[#232326]">
                           {appointment.rating ? (
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-[#313131]">Sua avaliação:</span>
+                                <span className="text-sm font-medium text-[#313131] dark:text-white">Sua avaliação:</span>
                                 <StarRating rating={appointment.rating} readonly />
                               </div>
                               {appointment.review && (
-                                <p className="text-sm text-[#313131]/70 bg-[#EFEFEF] p-3 rounded-lg">
+                                <p className="text-sm text-[#313131]/70 dark:text-gray-400 bg-[#EFEFEF] dark:bg-[#18181b] p-3 rounded-lg">
                                   "{appointment.review}"
                                 </p>
                               )}
@@ -391,41 +393,41 @@ export default function AppointmentsPage() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                                    className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
                                   >
                                     <Star className="w-4 h-4 mr-2" />
                                     Avaliar Atendimento
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-md">
+                                <DialogContent className="sm:max-w-md dark:bg-[#232326]">
                                   <DialogHeader>
-                                    <DialogTitle className="text-[#313131]">Avaliar Atendimento</DialogTitle>
-                                    <DialogDescription>
+                                    <DialogTitle className="text-[#313131] dark:text-white">Avaliar Atendimento</DialogTitle>
+                                    <DialogDescription className="dark:text-gray-400">
                                       Como foi sua experiência com {appointment.professional}?
                                     </DialogDescription>
                                   </DialogHeader>
                                   <div className="space-y-4">
                                     <div>
-                                      <Label className="text-sm font-medium text-[#313131]">Nota geral</Label>
+                                      <Label className="text-sm font-medium text-[#313131] dark:text-white">Nota geral</Label>
                                       <div className="mt-2">
                                         <StarRating rating={selectedRating} onRatingChange={setSelectedRating} />
                                       </div>
                                     </div>
                                     <div>
-                                      <Label htmlFor="review" className="text-sm font-medium text-[#313131]">
+                                      <Label htmlFor="review" className="text-sm font-medium text-[#313131] dark:text-white">
                                         Comentário (opcional)
                                       </Label>
                                       <Textarea
                                         id="review"
                                         placeholder="Conte como foi sua experiência..."
-                                        className="mt-2 border-[#EFEFEF] focus:border-[#FF96B2]"
+                                        className="mt-2 border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#f472b6] dark:bg-[#18181b] dark:text-white"
                                         value={reviewText}
                                         onChange={(e) => setReviewText(e.target.value)}
                                       />
                                     </div>
                                     <div className="flex space-x-2">
                                       <Button
-                                        className="flex-1 bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                                        className="flex-1 bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white"
                                         onClick={() => handleSubmitReview(appointment.id)}
                                         disabled={selectedRating === 0}
                                       >
@@ -443,7 +445,7 @@ export default function AppointmentsPage() {
                       {/* Repeat Service */}
                       {appointment.status === "completed" && (
                         <div className="flex justify-end">
-                          <Button size="sm" className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">
+                          <Button size="sm" className="bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white">
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Agendar Novamente
                           </Button>
@@ -453,11 +455,11 @@ export default function AppointmentsPage() {
                   </Card>
                 ))
               ) : (
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg dark:bg-[#232326]">
                   <CardContent className="text-center py-12">
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-[#313131]/30" />
-                    <h3 className="text-xl font-semibold text-[#313131] mb-2">Nenhum histórico encontrado</h3>
-                    <p className="text-[#313131]/70">Tente ajustar o filtro de período</p>
+                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-[#313131]/30 dark:text-gray-600" />
+                    <h3 className="text-xl font-semibold text-[#313131] dark:text-white mb-2">Nenhum histórico encontrado</h3>
+                    <p className="text-[#313131]/70 dark:text-gray-400">Tente ajustar o filtro de período</p>
                   </CardContent>
                 </Card>
               )}

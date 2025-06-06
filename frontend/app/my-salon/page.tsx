@@ -311,12 +311,12 @@ export default function AdminSalonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFEFEF] p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#313131] mb-2">Meu Salão</h1>
-          <p className="text-[#313131]/70">Gerencie todas as informações do seu salão</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Meu Salão</h1>
+          <p className="text-muted-foreground">Gerencie todas as informações do seu salão</p>
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
@@ -333,19 +333,19 @@ export default function AdminSalonPage() {
           <TabsContent value="general">
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Salon Photo */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-card">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-[#313131]">Foto do Salão</CardTitle>
+                  <CardTitle className="text-foreground">Foto do Salão</CardTitle>
                   <CardDescription>Imagem principal que aparece no perfil</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="relative inline-block">
-                    <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#FF96B2]/20 to-[#FF96B2]/10 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-16 h-16 text-[#FF96B2]" />
+                    <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-16 h-16 text-primary" />
                     </div>
                     <Button
                       size="sm"
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#FF96B2] hover:bg-[#FF96B2]/90"
+                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-primary hover:bg-primary/90"
                     >
                       <Camera className="w-4 h-4" />
                     </Button>
@@ -353,20 +353,20 @@ export default function AdminSalonPage() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                      className="w-full border-primary text-primary hover:bg-primary hover:text-white"
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       Alterar Foto
                     </Button>
-                    <p className="text-xs text-[#313131]/50">Recomendado: 800x600px, máximo 5MB</p>
+                    <p className="text-xs text-muted-foreground">Recomendado: 800x600px, máximo 5MB</p>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Basic Information */}
-              <Card className="lg:col-span-2 border-0 shadow-lg">
+              <Card className="lg:col-span-2 border-0 shadow-lg bg-card">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Informações Básicas</CardTitle>
+                  <CardTitle className="text-foreground">Informações Básicas</CardTitle>
                   <CardDescription>Dados principais do seu salão</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -374,10 +374,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="salonName">Nome do salão</Label>
                       <div className="relative">
-                        <Building2 className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Building2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="salonName"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.name}
                           onChange={(e) => setSalonData({ ...salonData, name: e.target.value })}
                         />
@@ -390,7 +390,7 @@ export default function AdminSalonPage() {
                         value={salonData.category}
                         onValueChange={(value) => setSalonData({ ...salonData, category: value })}
                       >
-                        <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                        <SelectTrigger className="border-border focus:border-primary">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -405,10 +405,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="phone"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.phone}
                           onChange={(e) => setSalonData({ ...salonData, phone: e.target.value })}
                         />
@@ -418,10 +418,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="whatsapp">WhatsApp</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="whatsapp"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.whatsapp}
                           onChange={(e) => setSalonData({ ...salonData, whatsapp: e.target.value })}
                         />
@@ -431,11 +431,11 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.email}
                           onChange={(e) => setSalonData({ ...salonData, email: e.target.value })}
                         />
@@ -445,11 +445,11 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="capacity">Capacidade</Label>
                       <div className="relative">
-                        <Users className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Users className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="capacity"
                           type="number"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.capacity}
                           onChange={(e) => setSalonData({ ...salonData, capacity: Number.parseInt(e.target.value) })}
                         />
@@ -459,10 +459,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="address">Endereço completo</Label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="address"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.address}
                           onChange={(e) => setSalonData({ ...salonData, address: e.target.value })}
                         />
@@ -472,10 +472,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="website">Website</Label>
                       <div className="relative">
-                        <Globe className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="website"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.website}
                           onChange={(e) => setSalonData({ ...salonData, website: e.target.value })}
                         />
@@ -485,10 +485,10 @@ export default function AdminSalonPage() {
                     <div className="space-y-2">
                       <Label htmlFor="instagram">Instagram</Label>
                       <div className="relative">
-                        <Instagram className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                        <Instagram className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="instagram"
-                          className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                          className="pl-10 border-border focus:border-primary"
                           value={salonData.instagram}
                           onChange={(e) => setSalonData({ ...salonData, instagram: e.target.value })}
                         />
@@ -501,13 +501,13 @@ export default function AdminSalonPage() {
                     <Textarea
                       id="description"
                       placeholder="Conte sobre o seu salão, especialidades, diferenciais..."
-                      className="border-[#EFEFEF] focus:border-[#FF96B2] min-h-[100px]"
+                      className="border-border focus:border-primary min-h-[100px]"
                       value={salonData.description}
                       onChange={(e) => setSalonData({ ...salonData, description: e.target.value })}
                     />
                   </div>
 
-                  <Button className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white" onClick={handleSaveSalon}>
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleSaveSalon}>
                     Salvar Informações
                   </Button>
                 </CardContent>
@@ -518,23 +518,23 @@ export default function AdminSalonPage() {
           {/* Professionals Tab */}
           <TabsContent value="professionals">
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-card">
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle className="text-[#313131]">Equipe de Profissionais</CardTitle>
+                      <CardTitle className="text-foreground">Equipe de Profissionais</CardTitle>
                       <CardDescription>Gerencie os profissionais do seu salão</CardDescription>
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                           <Plus className="w-4 h-4 mr-2" />
                           Adicionar Profissional
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle className="text-[#313131]">Novo Profissional</DialogTitle>
+                          <DialogTitle className="text-foreground">Novo Profissional</DialogTitle>
                           <DialogDescription>Adicione um novo profissional à equipe</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -542,7 +542,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profName">Nome completo</Label>
                             <Input
                               id="profName"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newProfessional.name}
                               onChange={(e) => setNewProfessional({ ...newProfessional, name: e.target.value })}
                             />
@@ -552,7 +552,7 @@ export default function AdminSalonPage() {
                             <Input
                               id="profEmail"
                               type="email"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newProfessional.email}
                               onChange={(e) => setNewProfessional({ ...newProfessional, email: e.target.value })}
                             />
@@ -561,7 +561,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profPhone">Telefone</Label>
                             <Input
                               id="profPhone"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newProfessional.phone}
                               onChange={(e) => setNewProfessional({ ...newProfessional, phone: e.target.value })}
                             />
@@ -570,7 +570,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profSpecialty">Especialidade</Label>
                             <Input
                               id="profSpecialty"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newProfessional.specialty}
                               onChange={(e) => setNewProfessional({ ...newProfessional, specialty: e.target.value })}
                             />
@@ -581,7 +581,7 @@ export default function AdminSalonPage() {
                               value={newProfessional.experience}
                               onValueChange={(value) => setNewProfessional({ ...newProfessional, experience: value })}
                             >
-                              <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                              <SelectTrigger className="border-border focus:border-primary">
                                 <SelectValue placeholder="Selecione a experiência" />
                               </SelectTrigger>
                               <SelectContent>
@@ -601,7 +601,7 @@ export default function AdminSalonPage() {
                               type="number"
                               min="0"
                               max="100"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newProfessional.commission}
                               onChange={(e) =>
                                 setNewProfessional({ ...newProfessional, commission: Number.parseInt(e.target.value) })
@@ -619,7 +619,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="isManager">Gerente</Label>
                           </div>
                           <Button
-                            className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                             onClick={handleAddProfessional}
                           >
                             Adicionar Profissional
@@ -649,7 +649,7 @@ export default function AdminSalonPage() {
                             <div className="flex items-center space-x-3">
                               <Avatar className="w-10 h-10">
                                 <AvatarImage src={professional.avatar || "/placeholder.svg"} />
-                                <AvatarFallback className="bg-[#FF96B2] text-white">
+                                <AvatarFallback className="bg-primary text-primary-foreground">
                                   {professional.name
                                     .split(" ")
                                     .map((n) => n[0])
@@ -657,32 +657,32 @@ export default function AdminSalonPage() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-[#313131]">{professional.name}</p>
-                                <p className="text-sm text-[#313131]/70">{professional.experience}</p>
+                                <p className="font-medium text-foreground">{professional.name}</p>
+                                <p className="text-sm text-muted-foreground">{professional.experience}</p>
                                 {professional.isManager && (
-                                  <Badge className="bg-purple-100 text-purple-800 text-xs">Gerente</Badge>
+                                  <Badge className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs">Gerente</Badge>
                                 )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              <p className="text-[#313131]">{professional.email}</p>
-                              <p className="text-[#313131]/70">{professional.phone}</p>
+                              <p className="text-foreground">{professional.email}</p>
+                              <p className="text-muted-foreground">{professional.phone}</p>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="text-sm text-[#313131]">{professional.specialty}</p>
+                            <p className="text-sm text-foreground">{professional.specialty}</p>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-1">
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm font-medium">{professional.rating}</span>
-                              <span className="text-sm text-[#313131]/50">({professional.reviews})</span>
+                              <span className="text-sm text-muted-foreground">({professional.reviews})</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm font-medium text-[#FF96B2]">{professional.commission}%</span>
+                            <span className="text-sm font-medium text-primary">{professional.commission}%</span>
                           </TableCell>
                           <TableCell>{getStatusBadge(professional.status)}</TableCell>
                           <TableCell>
@@ -692,7 +692,7 @@ export default function AdminSalonPage() {
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" className="text-red-600">
+                                  <Button size="sm" variant="ghost" className="text-destructive">
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -706,7 +706,7 @@ export default function AdminSalonPage() {
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                     <AlertDialogAction
-                                      className="bg-red-600 hover:bg-red-700"
+                                      className="bg-destructive hover:bg-destructive/90"
                                       onClick={() => handleDeleteProfessional(professional.id)}
                                     >
                                       Remover
@@ -728,23 +728,23 @@ export default function AdminSalonPage() {
           {/* Services Tab */}
           <TabsContent value="services">
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-card">
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle className="text-[#313131]">Serviços Oferecidos</CardTitle>
+                      <CardTitle className="text-foreground">Serviços Oferecidos</CardTitle>
                       <CardDescription>Gerencie os serviços do seu salão</CardDescription>
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                           <Plus className="w-4 h-4 mr-2" />
                           Novo Serviço
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle className="text-[#313131]">Adicionar Serviço</DialogTitle>
+                          <DialogTitle className="text-foreground">Adicionar Serviço</DialogTitle>
                           <DialogDescription>Crie um novo serviço para o salão</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -752,7 +752,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="serviceName">Nome do serviço</Label>
                             <Input
                               id="serviceName"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newService.name}
                               onChange={(e) => setNewService({ ...newService, name: e.target.value })}
                             />
@@ -763,7 +763,7 @@ export default function AdminSalonPage() {
                               value={newService.category}
                               onValueChange={(value) => setNewService({ ...newService, category: value })}
                             >
-                              <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                              <SelectTrigger className="border-border focus:border-primary">
                                 <SelectValue placeholder="Selecione a categoria" />
                               </SelectTrigger>
                               <SelectContent>
@@ -781,7 +781,7 @@ export default function AdminSalonPage() {
                               <Input
                                 id="serviceDuration"
                                 type="number"
-                                className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                                className="border-border focus:border-primary"
                                 value={newService.duration}
                                 onChange={(e) =>
                                   setNewService({ ...newService, duration: Number.parseInt(e.target.value) })
@@ -793,7 +793,7 @@ export default function AdminSalonPage() {
                               <Input
                                 id="servicePrice"
                                 type="number"
-                                className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                                className="border-border focus:border-primary"
                                 value={newService.price}
                                 onChange={(e) =>
                                   setNewService({ ...newService, price: Number.parseFloat(e.target.value) })
@@ -805,13 +805,13 @@ export default function AdminSalonPage() {
                             <Label htmlFor="serviceDescription">Descrição</Label>
                             <Textarea
                               id="serviceDescription"
-                              className="border-[#EFEFEF] focus:border-[#FF96B2]"
+                              className="border-border focus:border-primary"
                               value={newService.description}
                               onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                             />
                           </div>
                           <Button
-                            className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                             onClick={handleAddService}
                           >
                             Adicionar Serviço
@@ -824,12 +824,12 @@ export default function AdminSalonPage() {
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
                     {services.map((service) => (
-                      <Card key={service.id} className="border border-[#EFEFEF]">
+                      <Card key={service.id} className="border border-border bg-card">
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div>
-                              <CardTitle className="text-lg text-[#313131]">{service.name}</CardTitle>
-                              <Badge className="bg-[#FF96B2]/10 text-[#FF96B2]">{service.category}</Badge>
+                              <CardTitle className="text-lg text-foreground">{service.name}</CardTitle>
+                              <Badge className="bg-primary/10 text-primary">{service.category}</Badge>
                             </div>
                             <div className="flex items-center space-x-2">
                               <Switch
@@ -842,7 +842,7 @@ export default function AdminSalonPage() {
                                 </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="ghost" className="text-red-600">
+                                    <Button size="sm" variant="ghost" className="text-destructive">
                                       <Trash2 className="w-4 h-4" />
                                     </Button>
                                   </AlertDialogTrigger>
@@ -856,7 +856,7 @@ export default function AdminSalonPage() {
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                       <AlertDialogAction
-                                        className="bg-red-600 hover:bg-red-700"
+                                        className="bg-destructive hover:bg-destructive/90"
                                         onClick={() => handleDeleteService(service.id)}
                                       >
                                         Excluir
@@ -869,9 +869,9 @@ export default function AdminSalonPage() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-sm text-[#313131]/70 mb-3">{service.description}</p>
+                          <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
                           <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-4 text-sm text-[#313131]/70">
+                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                               <div className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
                                 {service.duration} min
@@ -882,7 +882,7 @@ export default function AdminSalonPage() {
                               </div>
                             </div>
                             <Badge
-                              className={service.active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                              className={service.active ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200" : "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200"}
                             >
                               {service.active ? "Ativo" : "Inativo"}
                             </Badge>
@@ -896,91 +896,102 @@ export default function AdminSalonPage() {
             </div>
           </TabsContent>
 
-          {/* Hours Tab */}
-          <TabsContent value="hours">
-            <Card className="border-0 shadow-lg">
+            {/* Hours Tab */}
+            <TabsContent value="hours">
+            <Card className="border-0 shadow-lg bg-card">
               <CardHeader>
-                <CardTitle className="text-[#313131]">Horário de Funcionamento</CardTitle>
-                <CardDescription>Configure os horários de abertura e fechamento</CardDescription>
+              <CardTitle className="text-foreground">Horário de Funcionamento</CardTitle>
+              <CardDescription>Configure os horários de abertura e fechamento</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(operatingHours).map(([day, hours]) => (
-                    <div key={day} className="flex items-center justify-between p-4 bg-[#EFEFEF] rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-32">
-                          <span className="font-medium text-[#313131]">{dayNames[day as keyof typeof dayNames]}</span>
-                        </div>
-                        <Switch
-                          checked={!hours.closed}
-                          onCheckedChange={(checked) =>
-                            setOperatingHours({
-                              ...operatingHours,
-                              [day]: { ...hours, closed: !checked },
-                            })
-                          }
-                        />
-                      </div>
-                      {!hours.closed && (
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            <Label htmlFor={`${day}-open`} className="text-sm">
-                              Abertura:
-                            </Label>
-                            <Input
-                              id={`${day}-open`}
-                              type="time"
-                              className="w-24 border-[#EFEFEF] focus:border-[#FF96B2]"
-                              value={hours.open}
-                              onChange={(e) =>
-                                setOperatingHours({
-                                  ...operatingHours,
-                                  [day]: { ...hours, open: e.target.value },
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Label htmlFor={`${day}-close`} className="text-sm">
-                              Fechamento:
-                            </Label>
-                            <Input
-                              id={`${day}-close`}
-                              type="time"
-                              className="w-24 border-[#EFEFEF] focus:border-[#FF96B2]"
-                              value={hours.close}
-                              onChange={(e) =>
-                                setOperatingHours({
-                                  ...operatingHours,
-                                  [day]: { ...hours, close: e.target.value },
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-                      )}
-                      {hours.closed && <Badge className="bg-red-100 text-red-800">Fechado</Badge>}
+              <div className="space-y-4">
+                {Object.entries(operatingHours).map(([day, hours]) => (
+                <div
+                  key={day}
+                  className="flex items-center justify-between p-4 rounded-lg bg-muted dark:bg-muted/40"
+                >
+                  <div className="flex items-center space-x-4">
+                  <div className="w-32">
+                    <span className="font-medium text-foreground">
+                    {dayNames[day as keyof typeof dayNames]}
+                    </span>
+                  </div>
+                  <Switch
+                    checked={!hours.closed}
+                    onCheckedChange={(checked) =>
+                    setOperatingHours({
+                      ...operatingHours,
+                      [day]: { ...hours, closed: !checked },
+                    })
+                    }
+                  />
+                  </div>
+                  {!hours.closed && (
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                    <Label htmlFor={`${day}-open`} className="text-sm text-foreground">
+                      Abertura:
+                    </Label>
+                    <Input
+                      id={`${day}-open`}
+                      type="time"
+                      className="w-24 border-border focus:border-primary bg-background text-foreground"
+                      value={hours.open}
+                      onChange={(e) =>
+                      setOperatingHours({
+                        ...operatingHours,
+                        [day]: { ...hours, open: e.target.value },
+                      })
+                      }
+                    />
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-2">
+                    <Label htmlFor={`${day}-close`} className="text-sm text-foreground">
+                      Fechamento:
+                    </Label>
+                    <Input
+                      id={`${day}-close`}
+                      type="time"
+                      className="w-24 border-border focus:border-primary bg-background text-foreground"
+                      value={hours.close}
+                      onChange={(e) =>
+                      setOperatingHours({
+                        ...operatingHours,
+                        [day]: { ...hours, close: e.target.value },
+                      })
+                      }
+                    />
+                    </div>
+                  </div>
+                  )}
+                  {hours.closed && (
+                  <Badge className="bg-destructive/10 dark:bg-destructive/30 text-destructive dark:text-destructive-foreground">
+                    Fechado
+                  </Badge>
+                  )}
                 </div>
-                <Button className="w-full mt-6 bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Salvar Horários</Button>
+                ))}
+              </div>
+              <Button className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground">
+                Salvar Horários
+              </Button>
               </CardContent>
             </Card>
-          </TabsContent>
+            </TabsContent>
 
           {/* Amenities Tab */}
           <TabsContent value="amenities">
             <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-card">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Comodidades</CardTitle>
+                  <CardTitle className="text-foreground">Comodidades</CardTitle>
                   <CardDescription>Serviços e facilidades oferecidas</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Wifi className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Wi-Fi gratuito</span>
+                      <Wifi className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Wi-Fi gratuito</span>
                     </div>
                     <Switch
                       checked={amenities.wifi}
@@ -989,8 +1000,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Car className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Estacionamento</span>
+                      <Car className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Estacionamento</span>
                     </div>
                     <Switch
                       checked={amenities.parking}
@@ -999,8 +1010,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Coffee className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Café e água</span>
+                      <Coffee className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Café e água</span>
                     </div>
                     <Switch
                       checked={amenities.coffee}
@@ -1009,8 +1020,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Shield className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Acessibilidade</span>
+                      <Shield className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Acessibilidade</span>
                     </div>
                     <Switch
                       checked={amenities.accessibility}
@@ -1020,16 +1031,16 @@ export default function AdminSalonPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-card">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Formas de Pagamento</CardTitle>
+                  <CardTitle className="text-foreground">Formas de Pagamento</CardTitle>
                   <CardDescription>Métodos de pagamento aceitos</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <DollarSign className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Dinheiro</span>
+                      <DollarSign className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Dinheiro</span>
                     </div>
                     <Switch
                       checked={paymentMethods.cash}
@@ -1038,8 +1049,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <CreditCard className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Cartão de débito</span>
+                      <CreditCard className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Cartão de débito</span>
                     </div>
                     <Switch
                       checked={paymentMethods.debitCard}
@@ -1048,8 +1059,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <CreditCard className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">Cartão de crédito</span>
+                      <CreditCard className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">Cartão de crédito</span>
                     </div>
                     <Switch
                       checked={paymentMethods.creditCard}
@@ -1058,8 +1069,8 @@ export default function AdminSalonPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Phone className="w-5 h-5 text-[#FF96B2]" />
-                      <span className="text-[#313131]">PIX</span>
+                      <Phone className="w-5 h-5 text-primary" />
+                      <span className="text-foreground">PIX</span>
                     </div>
                     <Switch
                       checked={paymentMethods.pix}
@@ -1073,14 +1084,14 @@ export default function AdminSalonPage() {
 
           {/* Gallery Tab */}
           <TabsContent value="gallery">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-card">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-[#313131]">Galeria de Fotos</CardTitle>
+                    <CardTitle className="text-foreground">Galeria de Fotos</CardTitle>
                     <CardDescription>Mostre o ambiente e trabalhos do seu salão</CardDescription>
                   </div>
-                  <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Fotos
                   </Button>
@@ -1090,8 +1101,8 @@ export default function AdminSalonPage() {
                 <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
                     <div key={index} className="relative group">
-                      <div className="aspect-square bg-gradient-to-br from-[#FF96B2]/20 to-[#FF96B2]/10 rounded-lg flex items-center justify-center">
-                        <Camera className="w-8 h-8 text-[#FF96B2]" />
+                      <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                        <Camera className="w-8 h-8 text-primary" />
                       </div>
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
                         <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">

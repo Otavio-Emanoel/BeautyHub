@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Calendar } from "lucide-react"
+import { Menu, X, Calendar, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 
 // Substitua isso pelo seu hook real de autenticação
 const useAuth = () => {
@@ -20,20 +21,37 @@ const useAuth = () => {
   return { user: { role: "salao" } }
 }
 
+
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const role = user?.role
 
   const renderLinks = () => {
+
+     if (!mounted) {
+    // Exibe um indicador de carregamento enquanto o tema não está montado
+    return (
+      <span className={`${theme === "dark" ? "text-white" : "text-[#313131]"}`}>
+        Carregando...
+      </span>
+    )
+  }
+
     if (!user) {
       // Visitante
       return (
         <>
-          <Link href="/" className="text-[#313131] hover:text-[#FF96B2]">Início</Link>
-          <Link href="/salons" className="text-[#313131] hover:text-[#FF96B2]">Explorar</Link>
-          <Link href="/services" className="text-[#313131] hover:text-[#FF96B2]">Serviços</Link>
+          <Link href="/" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Início</Link>
+          <Link href="/salons" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Explorar</Link>
+          <Link href="/services" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Serviços</Link>
         </>
       )
     }
@@ -41,11 +59,11 @@ export function Navbar() {
     if (role === "usuario") {
       return (
         <>
-          <Link href="/" className="text-[#313131] hover:text-[#FF96B2]">Início</Link>
-          <Link href="/salons" className="text-[#313131] hover:text-[#FF96B2]">Explorar</Link>
-          <Link href="/services" className="text-[#313131] hover:text-[#FF96B2]">Serviços</Link>
-          <Link href="/appoint" className="text-[#313131] hover:text-[#FF96B2]">Meus Agendamentos</Link>
-          <Link href="/user" className="text-[#313131] hover:text-[#FF96B2]">Área do Usuário</Link>
+          <Link href="/" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Início</Link>
+          <Link href="/salons" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Explorar</Link>
+          <Link href="/services" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Serviços</Link>
+          <Link href="/appoint" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Meus Agendamentos</Link>
+          <Link href="/user" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Área do Usuário</Link>
         </>
       )
     }
@@ -53,10 +71,10 @@ export function Navbar() {
     if (role === "profissional") {
       return (
         <>
-          <Link href="/dashboard" className="text-[#313131] hover:text-[#FF96B2]">Área do Profissional</Link>
-          <Link href="/appoint-pro" className="text-[#313131] hover:text-[#FF96B2]">Agendamentos</Link>
-          <Link href="/about-me" className="text-[#313131] hover:text-[#FF96B2]">Sobre mim</Link>
-          <Link href="/report" className="text-[#313131] hover:text-[#FF96B2]">Relatórios</Link>
+          <Link href="/dashboard" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Área do Profissional</Link>
+          <Link href="/appoint-pro" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Agendamentos</Link>
+          <Link href="/about-me" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Sobre mim</Link>
+          <Link href="/report" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Relatórios</Link>
         </>
       )
     }
@@ -64,80 +82,123 @@ export function Navbar() {
     if (role === "salao") {
       return (
         <>
-          <Link href="/dashboard" className="text-[#313131] hover:text-[#FF96B2]">Dashboard</Link>
-          <Link href="/my-salon" className="text-[#313131] hover:text-[#FF96B2]">Meu Salão</Link>
-          <Link href="/appoint" className="text-[#313131] hover:text-[#FF96B2]">Agendamentos</Link>
-          <Link href="/services" className="text-[#313131] hover:text-[#FF96B2]">Serviços</Link>
-          <Link href="/report" className="text-[#313131] hover:text-[#FF96B2]">Relatórios</Link>
+          <Link href="/dashboard" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Dashboard</Link>
+          <Link href="/my-salon" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Meu Salão</Link>
+          <Link href="/appoint" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Agendamentos</Link>
+          <Link href="/services" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Serviços</Link>
+          <Link href="/report" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Relatórios</Link>
         </>
       )
     }
   }
 
-  return (
-    <nav className="bg-white shadow-sm border-b border-[#EFEFEF] sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Calendar className="w-8 h-8 text-[#FF96B2]" />
-            <span className="text-xl font-bold text-[#313131]">NOME</span>
-          </Link>
+return (
+  <nav
+    className={`shadow-sm border-b sticky top-0 z-50 transition-colors duration-300
+      ${theme === "dark" ? "bg-black border-[#222] text-white" : "bg-white border-[#EFEFEF] text-[#313131]"}`}
+  >
+    <div className="container mx-auto px-4">
+      <div className="flex justify-between items-center h-16">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2">
+          <Calendar className={`w-8 h-8 ${theme === "dark" ? "text-[#FF96B2]" : "text-[#FF96B2]"}`} />
+          <span className={`text-xl font-bold ${theme === "dark" ? "text-white" : "text-[#313131]"}`}>BeautyHub</span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            {renderLinks()}
-          </div>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
+  {renderLinks()}
+</div>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            {!user ? (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" className="text-[#313131] hover:text-[#FF96B2]">Entrar</Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Cadastrar</Button>
-                </Link>
-              </>
+        {/* Só renderiza o botão de tema se estiver montado */}
+        {mounted && (
+          <button
+            aria-label="Alternar tema"
+            className={`ml-4 p-2 rounded-lg transition-all duration-200 ease-in-out cursor-pointer
+              ${theme === "dark" ? "bg-[#FF96B2]" : "bg-black"}`}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5 text-white-400" />
             ) : (
-              <Link href="/logout">
-                <Button variant="ghost" className="text-[#313131] hover:text-[#FF96B2]">Sair</Button>
-              </Link>
+              <Moon className="w-5 h-5 text-gray-300" />
             )}
-          </div>
-
-          {/* Mobile Toggle */}
-          <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X className="w-6 h-6 text-[#313131]" /> : <Menu className="w-6 h-6 text-[#313131]" />}
           </button>
+        )}
+
+        {/* Auth Buttons */}
+        <div className="hidden md:flex items-center space-x-4">
+          {!user ? (
+            <>
+              <Link href="/auth/login">
+                <Button
+                  variant="ghost"
+                  className={`${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
+                >
+                  Entrar
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Cadastrar</Button>
+              </Link>
+            </>
+          ) : (
+            <Link href="/logout">
+              <Button
+                variant="ghost"
+                className={`${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
+              >
+                Sair
+              </Button>
+            </Link>
+          )}
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-[#EFEFEF]">
-            <div className="flex flex-col space-y-4">
-              {renderLinks()}
-              <div className="pt-4 border-t border-[#EFEFEF]">
-                {!user ? (
-                  <>
-                    <Link href="/auth/login">
-                      <Button variant="ghost" className="w-full justify-start text-[#313131] hover:text-[#FF96B2]">Entrar</Button>
-                    </Link>
-                    <Link href="/auth/register">
-                      <Button className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Cadastrar</Button>
-                    </Link>
-                  </>
-                ) : (
-                  <Link href="/logout">
-                    <Button variant="ghost" className="w-full justify-start text-[#313131] hover:text-[#FF96B2]">Sair</Button>
+        {/* Mobile Toggle */}
+        <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? (
+            <X className={`w-6 h-6 ${theme === "dark" ? "text-white" : "text-[#313131]"}`} />
+          ) : (
+            <Menu className={`w-6 h-6 ${theme === "dark" ? "text-white" : "text-[#313131]"}`} />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className={`md:hidden py-4 border-t ${theme === "dark" ? "border-[#222]" : "border-[#EFEFEF]"}`}>
+          <div className="hidden md:flex items-center space-x-6">
+  {renderLinks()}
+</div>
+            <div className={`pt-4 border-t ${theme === "dark" ? "border-[#222]" : "border-[#EFEFEF]"}`}>
+              {!user ? (
+                <>
+                  <Link href="/auth/login">
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-start ${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
+                    >
+                      Entrar
+                    </Button>
                   </Link>
-                )}
-              </div>
+                  <Link href="/auth/register">
+                    <Button className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white">Cadastrar</Button>
+                  </Link>
+                </>
+              ) : (
+                <Link href="/logout">
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start ${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
+                  >
+                    Sair
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
-        )}
-      </div>
-    </nav>
-  )
+      )}
+    </div>
+  </nav>
+)
 }

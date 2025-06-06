@@ -181,16 +181,16 @@ export default function ProfessionalReportsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#EFEFEF] p-6">
+    <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181B] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-[#313131] mb-2">Relatório de Feedbacks</h1>
-              <p className="text-[#313131]/70">Acompanhe as avaliações e comentários dos seus clientes</p>
+              <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Relatório de Feedbacks</h1>
+              <p className="text-[#313131]/70 dark:text-white/70">Acompanhe as avaliações e comentários dos seus clientes</p>
             </div>
-            <Button variant="outline" className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white">
+            <Button variant="outline" className="border-[#FF96B2] dark:border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF96B2] dark:hover:text-white">
               <Download className="w-4 h-4 mr-2" />
               Exportar Relatório
             </Button>
@@ -210,16 +210,16 @@ export default function ProfessionalReportsPage() {
             <div className="space-y-6">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-[#313131]/70">Avaliação Média</CardTitle>
+                    <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/70">Avaliação Média</CardTitle>
                     <Star className="h-4 w-4 text-[#FF96B2]" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-[#313131]">{overallStats.averageRating}</div>
+                    <div className="text-2xl font-bold text-[#313131] dark:text-white">{overallStats.averageRating}</div>
                     <div className="flex items-center space-x-2">
                       <StarRating rating={overallStats.averageRating} />
-                      <span className="text-xs text-green-600 flex items-center">
+                      <span className="text-xs text-green-600 dark:text-green-400 flex items-center">
                         <TrendingUp className="w-3 h-3 mr-1" />
                         {overallStats.ratingTrend}
                       </span>
@@ -227,62 +227,62 @@ export default function ProfessionalReportsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-[#313131]/70">Total de Avaliações</CardTitle>
+                    <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/70">Total de Avaliações</CardTitle>
                     <MessageSquare className="h-4 w-4 text-[#FF96B2]" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-[#313131]">{overallStats.totalReviews}</div>
-                    <p className="text-xs text-green-600 flex items-center">
+                    <div className="text-2xl font-bold text-[#313131] dark:text-white">{overallStats.totalReviews}</div>
+                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />+{overallStats.reviewsTrend} este mês
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-[#313131]/70">Taxa de Resposta</CardTitle>
+                    <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/70">Taxa de Resposta</CardTitle>
                     <Users className="h-4 w-4 text-[#FF96B2]" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-[#313131]">{overallStats.responseRate}%</div>
-                    <p className="text-xs text-[#313131]/70">das avaliações respondidas</p>
+                    <div className="text-2xl font-bold text-[#313131] dark:text-white">{overallStats.responseRate}%</div>
+                    <p className="text-xs text-[#313131]/70 dark:text-white/70">das avaliações respondidas</p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-[#313131]/70">Recomendação</CardTitle>
+                    <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/70">Recomendação</CardTitle>
                     <ThumbsUp className="h-4 w-4 text-[#FF96B2]" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-[#313131]">{overallStats.recommendationRate}%</div>
-                    <p className="text-xs text-[#313131]/70">dos clientes recomendam</p>
+                    <div className="text-2xl font-bold text-[#313131] dark:text-white">{overallStats.recommendationRate}%</div>
+                    <p className="text-xs text-[#313131]/70 dark:text-white/70">dos clientes recomendam</p>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Rating Distribution */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Distribuição de Avaliações</CardTitle>
-                  <CardDescription>Como seus clientes avaliam seus serviços</CardDescription>
+                  <CardTitle className="text-[#313131] dark:text-white">Distribuição de Avaliações</CardTitle>
+                  <CardDescription className="dark:text-white/70">Como seus clientes avaliam seus serviços</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {ratingDistribution.map((item) => (
                       <div key={item.stars} className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 w-20">
-                          <span className="text-sm font-medium text-[#313131]">{item.stars}</span>
+                          <span className="text-sm font-medium text-[#313131] dark:text-white">{item.stars}</span>
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         </div>
                         <div className="flex-1">
                           <Progress value={item.percentage} className="h-2" />
                         </div>
                         <div className="flex items-center space-x-2 w-20">
-                          <span className="text-sm text-[#313131]/70">{item.count}</span>
-                          <span className="text-xs text-[#313131]/50">({item.percentage}%)</span>
+                          <span className="text-sm text-[#313131]/70 dark:text-white/70">{item.count}</span>
+                          <span className="text-xs text-[#313131]/50 dark:text-white/50">({item.percentage}%)</span>
                         </div>
                       </div>
                     ))}
@@ -296,21 +296,21 @@ export default function ProfessionalReportsPage() {
           <TabsContent value="reviews">
             <div className="space-y-6">
               {/* Filters */}
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50" />
+                      <Search className="absolute left-3 top-3 w-4 h-4 text-[#313131]/50 dark:text-white/50" />
                       <Input
                         placeholder="Buscar avaliações..."
-                        className="pl-10 border-[#EFEFEF] focus:border-[#FF96B2]"
+                        className="pl-10 border-[#EFEFEF] dark:border-[#23232A] focus:border-[#FF96B2]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
 
                     <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                      <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                      <SelectTrigger className="border-[#EFEFEF] dark:border-[#23232A] focus:border-[#FF96B2]">
                         <SelectValue placeholder="Avaliação" />
                       </SelectTrigger>
                       <SelectContent>
@@ -324,7 +324,7 @@ export default function ProfessionalReportsPage() {
                     </Select>
 
                     <Select value={serviceFilter} onValueChange={setServiceFilter}>
-                      <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                      <SelectTrigger className="border-[#EFEFEF] dark:border-[#23232A] focus:border-[#FF96B2]">
                         <SelectValue placeholder="Serviço" />
                       </SelectTrigger>
                       <SelectContent>
@@ -337,7 +337,7 @@ export default function ProfessionalReportsPage() {
                     </Select>
 
                     <Select value={periodFilter} onValueChange={setPeriodFilter}>
-                      <SelectTrigger className="border-[#EFEFEF] focus:border-[#FF96B2]">
+                      <SelectTrigger className="border-[#EFEFEF] dark:border-[#23232A] focus:border-[#FF96B2]">
                         <SelectValue placeholder="Período" />
                       </SelectTrigger>
                       <SelectContent>
@@ -350,7 +350,7 @@ export default function ProfessionalReportsPage() {
 
                     <Button
                       variant="outline"
-                      className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                      className="border-[#FF96B2] dark:border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF96B2] dark:hover:text-white"
                       onClick={() => {
                         setSearchTerm("")
                         setRatingFilter("all")
@@ -368,7 +368,7 @@ export default function ProfessionalReportsPage() {
               {/* Reviews List */}
               <div className="space-y-4">
                 {filteredReviews.map((review) => (
-                  <Card key={review.id} className="border-0 shadow-lg">
+                  <Card key={review.id} className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                     <CardContent className="pt-6">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center space-x-4">
@@ -383,19 +383,19 @@ export default function ProfessionalReportsPage() {
                           </Avatar>
                           <div>
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold text-[#313131]">{review.client.name}</h3>
+                              <h3 className="font-semibold text-[#313131] dark:text-white">{review.client.name}</h3>
                               {review.client.isVerified && (
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">Verificado</Badge>
+                                <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs">Verificado</Badge>
                               )}
                               {review.isRecent && <Badge className="bg-[#FF96B2] text-white text-xs">Novo</Badge>}
                             </div>
-                            <p className="text-sm text-[#313131]/70">{review.service}</p>
+                            <p className="text-sm text-[#313131]/70 dark:text-white/70">{review.service}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="text-right">
                             <StarRating rating={review.rating} />
-                            <p className="text-xs text-[#313131]/50 mt-1">
+                            <p className="text-xs text-[#313131]/50 dark:text-white/50 mt-1">
                               {new Date(review.date).toLocaleDateString("pt-BR")}
                             </p>
                           </div>
@@ -415,7 +415,7 @@ export default function ProfessionalReportsPage() {
                       </div>
 
                       <div className="mb-4">
-                        <p className="text-[#313131] mb-3">{review.comment}</p>
+                        <p className="text-[#313131] dark:text-white mb-3">{review.comment}</p>
                         <div className="flex flex-wrap gap-2">
                           {review.tags.map((tag, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -426,20 +426,20 @@ export default function ProfessionalReportsPage() {
                       </div>
 
                       {review.response && (
-                        <div className="bg-[#FF96B2]/5 border-l-4 border-[#FF96B2] p-4 mb-4">
+                        <div className="bg-[#FF96B2]/5 dark:bg-[#FF96B2]/10 border-l-4 border-[#FF96B2] p-4 mb-4">
                           <div className="flex items-center space-x-2 mb-2">
                             <Avatar className="w-6 h-6">
                               <AvatarFallback className="bg-[#FF96B2] text-white text-xs">AC</AvatarFallback>
                             </Avatar>
-                            <span className="text-sm font-medium text-[#313131]">Sua resposta:</span>
+                            <span className="text-sm font-medium text-[#313131] dark:text-white">Sua resposta:</span>
                           </div>
-                          <p className="text-sm text-[#313131]/80">{review.response}</p>
+                          <p className="text-sm text-[#313131]/80 dark:text-white/80">{review.response}</p>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-1 text-sm text-[#313131]/70">
+                          <div className="flex items-center space-x-1 text-sm text-[#313131]/70 dark:text-white/70">
                             <ThumbsUp className="w-4 h-4" />
                             <span>{review.helpful} pessoas acharam útil</span>
                           </div>
@@ -448,7 +448,7 @@ export default function ProfessionalReportsPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                            className="border-[#FF96B2] dark:border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF96B2] dark:hover:text-white"
                           >
                             Responder
                           </Button>
@@ -463,31 +463,31 @@ export default function ProfessionalReportsPage() {
 
           {/* Services Tab */}
           <TabsContent value="services">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
               <CardHeader>
-                <CardTitle className="text-[#313131]">Avaliações por Serviço</CardTitle>
-                <CardDescription>Performance de cada serviço oferecido</CardDescription>
+                <CardTitle className="text-[#313131] dark:text-white">Avaliações por Serviço</CardTitle>
+                <CardDescription className="dark:text-white/70">Performance de cada serviço oferecido</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {serviceRatings.map((service, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-[#EFEFEF] rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-[#313131] mb-1">{service.service}</h3>
+                        <h3 className="font-semibold text-[#313131] dark:text-white mb-1">{service.service}</h3>
                         <div className="flex items-center space-x-4">
                           <StarRating rating={service.rating} />
-                          <span className="text-sm font-medium text-[#313131]">{service.rating}</span>
-                          <span className="text-sm text-[#313131]/70">({service.reviews} avaliações)</span>
+                          <span className="text-sm font-medium text-[#313131] dark:text-white">{service.rating}</span>
+                          <span className="text-sm text-[#313131]/70 dark:text-white/70">({service.reviews} avaliações)</span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div
                           className={`flex items-center space-x-1 text-sm ${
                             service.trend.startsWith("+")
-                              ? "text-green-600"
+                              ? "text-green-600 dark:text-green-400"
                               : service.trend.startsWith("-")
-                                ? "text-red-600"
-                                : "text-[#313131]/70"
+                                ? "text-red-600 dark:text-red-400"
+                                : "text-[#313131]/70 dark:text-white/70"
                           }`}
                         >
                           {service.trend.startsWith("+") && <TrendingUp className="w-4 h-4" />}
@@ -505,17 +505,17 @@ export default function ProfessionalReportsPage() {
           {/* Trends Tab */}
           <TabsContent value="trends">
             <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Evolução da Avaliação</CardTitle>
-                  <CardDescription>Tendência da sua avaliação média</CardDescription>
+                  <CardTitle className="text-[#313131] dark:text-white">Evolução da Avaliação</CardTitle>
+                  <CardDescription className="dark:text-white/70">Tendência da sua avaliação média</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center bg-[#EFEFEF] rounded-lg">
+                  <div className="h-64 flex items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
                     <div className="text-center">
                       <TrendingUp className="w-12 h-12 text-[#FF96B2] mx-auto mb-4" />
-                      <p className="text-[#313131]/70">Gráfico de tendência da avaliação</p>
-                      <p className="text-sm text-[#313131]/50 mt-2">
+                      <p className="text-[#313131]/70 dark:text-white/70">Gráfico de tendência da avaliação</p>
+                      <p className="text-sm text-[#313131]/50 dark:text-white/50 mt-2">
                         Sua avaliação média cresceu 0.3 pontos nos últimos 3 meses
                       </p>
                     </div>
@@ -523,17 +523,17 @@ export default function ProfessionalReportsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
                 <CardHeader>
-                  <CardTitle className="text-[#313131]">Volume de Avaliações</CardTitle>
-                  <CardDescription>Quantidade de avaliações recebidas</CardDescription>
+                  <CardTitle className="text-[#313131] dark:text-white">Volume de Avaliações</CardTitle>
+                  <CardDescription className="dark:text-white/70">Quantidade de avaliações recebidas</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center bg-[#EFEFEF] rounded-lg">
+                  <div className="h-64 flex items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
                     <div className="text-center">
                       <MessageSquare className="w-12 h-12 text-[#FF96B2] mx-auto mb-4" />
-                      <p className="text-[#313131]/70">Gráfico de volume de avaliações</p>
-                      <p className="text-sm text-[#313131]/50 mt-2">Você recebeu 15 avaliações a mais este mês</p>
+                      <p className="text-[#313131]/70 dark:text-white/70">Gráfico de volume de avaliações</p>
+                      <p className="text-sm text-[#313131]/50 dark:text-white/50 mt-2">Você recebeu 15 avaliações a mais este mês</p>
                     </div>
                   </div>
                 </CardContent>

@@ -75,8 +75,8 @@
 }
 
 /* Smooth transitions */
-* {
-  transition: all 0.2s ease-in-out;
+button, a, input, select, textarea {
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
 }
 
 /* Custom scrollbar */
