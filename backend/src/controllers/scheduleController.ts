@@ -176,3 +176,48 @@ export async function finishAppointment(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao finalizar agendamento", details: error.message });
     }
 }
+
+export async function updateAppointmentStatus(req: Request, res: Response) {
+    const { id } = req.params;
+    const { status, newDate, newTime, reason } = req.body;
+    const userId = req.users?.uid;
+
+    if (!id || !status) {
+        return res.status(400).json({ error: "ID do agendamento e novo status são obrigatórios" });
+    }
+
+    try {
+        const appointmentRef = admin.firestore().collection('appointments').doc(id);
+        const appointmentDoc = await appointmentRef.get();
+
+        if (!appointmentDoc.exists) {
+            return res.status(404).json({ error: "Agendamento não encontrado" });
+        }
+
+        const appointment = appointmentDoc.data();
+
+        if (appointment?.professionalId !== userId) {
+            return res.status(403).json({ error: "Você não tem permissão para alterar este agendamento" });
+        }
+
+        const updateData: any = { status };
+
+        if (status === "rescheduled") {
+            if (!newDate || !newTime) {
+                return res.status(400).json({ error: "Nova data e hora são obrigatórias para remarcar" });
+            }
+            updateData.date = newDate;
+            updateData.time = newTime;
+        }
+
+        if (status === "rejected" && reason) {
+            updateData.rejectionReason = reason; 
+        }
+
+        await appointmentRef.update(updateData);
+
+        res.status(200).json({ message: "Status do agendamento atualizado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao atualizar status do agendamento", details: error.message });
+    }
+}
