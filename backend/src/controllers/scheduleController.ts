@@ -221,3 +221,51 @@ export async function updateAppointmentStatus(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao atualizar status do agendamento", details: error.message });
     }
 }
+
+export async function rateAppointment(req: Request, res: Response) {
+    const {id} = req.params;
+    const clientId = req.users?.uid;
+    const {rating, review} = req.body;
+
+    if (!id || !clientId) {
+        return res.status(400).json({ error: "ID do agendamento ou usuário não fornecido" });
+    }
+
+    if (!rating && !review) {
+        return res.status(400).json({ error: "Avaliação ou comentário são obrigatórios" });
+    }
+
+    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "Avaliação deve ser um número entre 1 e 5" });
+    }
+
+    try {
+
+        const appointmentRef = admin.firestore().collection('appointments').doc(id);
+        const appointmentDoc = await appointmentRef.get();
+
+        if (!appointmentDoc.exists) {
+            return res.status(404).json({ error: "Agendamento não encontrado" });
+        }
+
+        const appointment = appointmentDoc.data()
+
+        if (appointment?.clientId !== clientId) {
+            return res.status(403).json({ error: "Você não tem permissão para avaliar este agendamento" });
+        }
+        if (appointment?.status !== "completed") {
+            return res.status(400).json({ error: "Só é possível avaliar atendimentos concluídos" });
+        }
+
+        await appointmentRef.update({
+            rating: rating,
+            review: review || "",
+            ratedAt: new Date().toISOString()
+        });
+
+        res.status(200).json({ message: "Avaliação enviada com sucesso" });
+
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao avaliar agendamento", details: error.message });
+    }
+}
