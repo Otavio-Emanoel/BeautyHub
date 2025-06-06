@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createAppointment, listAllAppointments, listClientAppointments } from "../controllers/scheduleController";
 import { authenticateToken } from "../middlewares/authMiddleware";
-import { cancelAppointment } from "../controllers/scheduleController";
+import { cancelAppointment, finishAppointment } from "../controllers/scheduleController";
 
 const router = Router();
 
@@ -16,5 +16,8 @@ router.get("/", authenticateToken, listAllAppointments)
 
 // Rota para cancelar agendamento
 router.delete("/appointment/:id", authenticateToken, cancelAppointment);
+
+// rota para concluir agendamento
+router.patch("/appointment/:id/finish", authenticateToken, finishAppointment);
 
 export default router;

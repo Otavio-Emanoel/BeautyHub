@@ -134,3 +134,45 @@ export async function cancelAppointment(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao cancelar agendamento", details: error.message });
     }
 }
+
+export async function finishAppointment(req: Request, res: Response) {
+    const {id} = req.params;
+    const userId = req.users?.uid;
+
+    if (!id || !userId) {
+        return res.status(400).json({ error: "ID do agendamento ou usuário não fornecido" });
+    }
+
+    try {
+        const appointmentRef = admin.firestore().collection('appointments').doc(id);
+        const appointmentDoc = await appointmentRef.get();
+
+        if (!appointmentDoc.exists) {
+            return res.status(404).json({ error: "Agendamento não encontrado" });
+        }
+
+        const appointment = appointmentDoc.data();
+
+        let isAdmin = false;
+        if (appointment?.salonId) {
+            const userDoc = await admin.firestore().collection('users').doc(userId).get();
+            const userData = userDoc.data();
+            if (userData && userData.role === 'admin' && userData.salonId === appointment.salonId) {
+                isAdmin = true;
+            }
+        }
+
+        if (
+            appointment?.professionalId !== userId &&
+            !isAdmin
+        ) {
+            return res.status(403).json({ error: "Você não tem permissão para concluir este agendamento" });
+        }
+
+        await appointmentRef.update({ status: "completed", finishedAt: new Date().toISOString() });
+
+        res.status(200).json({ message: "Agendamento concluído com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao finalizar agendamento", details: error.message });
+    }
+}
