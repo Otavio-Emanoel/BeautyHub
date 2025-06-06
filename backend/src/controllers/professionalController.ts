@@ -64,3 +64,40 @@ export async function listProfessionalAppointments(req: Request, res: Response) 
         return res.status(400).json({ error: "Erro ao listar agendamentos", details: error.message });
     }
 }
+
+export async function updateServiceDuration(req: Request, res: Response) {
+    const professionalId = req.users?.uid;
+    const { serviceId } = req.params;
+    const { duration } = req.body;
+
+    if (!professionalId) {
+        return res.status(401).json({ error: "Usuário não autenticado" });
+    }
+    if (!serviceId || !duration) {
+        return res.status(400).json({ error: "ID do serviço ou duração não fornecidos" });
+    }
+
+    try {
+        const serviceRef = admin.firestore().collection('services').doc(serviceId);
+        const serviceDoc = await serviceRef.get();
+
+        if (!serviceDoc.exists) {
+            return res.status(404).json({ error: "Serviço não encontrado" });
+        }
+
+        const service = serviceDoc.data();
+
+        const userDoc = await admin.firestore().collection('users').doc(professionalId).get();
+        const userData = userDoc.data();
+
+        if (!userData || userData.role !== "professional" || userData.salonId !== service?.salonId) {
+            return res.status(403).json({ error: "Você não tem permissão para editar este serviço" });
+        }
+
+        await serviceRef.update({ duration });
+
+        res.status(200).json({ message: "Duração do serviço atualizada com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao atualizar duração do serviço", details: error.message });
+    }
+}

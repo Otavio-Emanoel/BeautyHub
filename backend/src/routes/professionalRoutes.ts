@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = Router();
@@ -12,5 +12,8 @@ router.put("/availability", authenticateToken, updateAvailability);
 
 // Rota para listar agendamentos do profissional
 router.get("/schedules", authenticateToken, listProfessionalAppointments);
+
+// Rota para definir tempo médio de por serviço
+router.patch("/service/:serviceId/duration", authenticateToken, updateServiceDuration);
 
 export default router;
