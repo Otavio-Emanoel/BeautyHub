@@ -16,7 +16,7 @@ export async function createAppointment(req: Request, res: Response ) {
             clientId,
             date,
             time,
-            notes: note,
+            note,
             status: 'pending',
             createdAt: new Date().toISOString()
         });
@@ -84,5 +84,53 @@ export async function listAllAppointments(req: Request, res: Response) {
         res.status(200).json({ appointments });
     } catch (error: any) {
         return res.status(400).json({ error: "Erro ao listar agendamentos", details: error.message });
+    }
+}
+
+export async function cancelAppointment(req: Request, res: Response) {
+    const {id} = req.params;
+    const userId = req.users?.uid;
+
+    if (!id || !userId) {
+        return res.status(400).json({ error: "ID do agendamento ou usuário não fornecido" });
+    }
+
+    try {
+        const appointmentRef = admin.firestore().collection('appointments').doc(id);
+        const appointmentDoc = await appointmentRef.get()
+
+        if (!appointmentDoc.exists) {
+            return res.status(404).json({ error: "Agendamento não encontrado" });
+        }
+
+        const appointment = appointmentDoc.data();
+
+        if (!appointment) {
+            return res.status(404).json({ error: "Dados do agendamento não encontrados" });
+        }
+
+        let isAdmin = false;
+        if (appointment.salonId) {
+            const userDoc = await admin.firestore().collection('users').doc(userId).get();
+            const userData = userDoc.data();
+            if (userData && userData.role === 'admin' && userData.salonId === appointment.salonId) {
+                isAdmin = true;
+            }
+        }
+
+        if (
+            appointment.clientId !== userId &&
+            appointment.professionalId !== userId &&
+            !isAdmin
+        ) {
+            return res.status(403).json({ error: "Você não tem permissão para cancelar este agendamento" });
+        }
+
+        await appointmentRef.update({ status: "cancelled", canceledAt: new Date().toISOString() });
+
+        res.status(200).json({ message: "Agendamento cancelado com sucesso" });
+
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao cancelar agendamento", details: error.message });
     }
 }
