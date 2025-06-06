@@ -178,3 +178,28 @@ export async function hireProfessional(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao contratar profissional", details: error.message });
     }
 }
+
+export async function generateSalonReport(req: Request, res: Response) {
+    try {
+        const { salonId } = req.query;
+        if (!salonId) {
+            return res.status(400).json({ error: "ID do salão não fornecido" });
+        }
+        
+        const db = admin.firestore();
+        const schedulesSnap = await db.collection('schedules').where('salonId', '==', salonId).get();
+        const servicesSnap = await db.collection('services').where('salonId', '==', salonId).get();
+        const professionalsSnap = await db.collection('professionals').where('salonId', '==', salonId).get();
+        const clientsSnap = await db.collection('users').where('role', '==', 'client').where('salonId', '==', salonId).get();
+        
+        res.status(200).json({
+            totalAgendamentos: schedulesSnap.size,
+            totalServicos: servicesSnap.size,
+            totalProfissionais: professionalsSnap.size,
+            totalClientes: clientsSnap.size
+        })
+
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao gerar relatório", details: error.message });
+    }
+}

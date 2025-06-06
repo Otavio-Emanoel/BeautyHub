@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional } from "../controllers/adminController";
+import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional, generateSalonReport } from "../controllers/adminController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { createService } from "../controllers/serviceController";
 import { deleteService } from "../controllers/serviceController";
@@ -29,5 +29,8 @@ router.post("/services", authenticateToken, createService);
 
 // Rota para excluir serviço
 router.delete("/services/:id", authenticateToken, deleteService);
+
+// Rota para gerar relatório do salão
+router.get("/salon/report", authenticateToken, generateSalonReport);
 
 export default router;
