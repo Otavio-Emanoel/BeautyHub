@@ -377,7 +377,7 @@ export default function AdminSalonPage() {
                         <Building2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="salonName"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.name}
                           onChange={(e) => setSalonData({ ...salonData, name: e.target.value })}
                         />
@@ -390,7 +390,7 @@ export default function AdminSalonPage() {
                         value={salonData.category}
                         onValueChange={(value) => setSalonData({ ...salonData, category: value })}
                       >
-                        <SelectTrigger className="border-border focus:border-primary">
+                        <SelectTrigger className="border-2 border-primary border-opacity-60 focus:border-primary">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -408,7 +408,7 @@ export default function AdminSalonPage() {
                         <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="phone"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.phone}
                           onChange={(e) => setSalonData({ ...salonData, phone: e.target.value })}
                         />
@@ -421,7 +421,7 @@ export default function AdminSalonPage() {
                         <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="whatsapp"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.whatsapp}
                           onChange={(e) => setSalonData({ ...salonData, whatsapp: e.target.value })}
                         />
@@ -435,7 +435,7 @@ export default function AdminSalonPage() {
                         <Input
                           id="email"
                           type="email"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.email}
                           onChange={(e) => setSalonData({ ...salonData, email: e.target.value })}
                         />
@@ -449,7 +449,7 @@ export default function AdminSalonPage() {
                         <Input
                           id="capacity"
                           type="number"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.capacity}
                           onChange={(e) => setSalonData({ ...salonData, capacity: Number.parseInt(e.target.value) })}
                         />
@@ -462,7 +462,7 @@ export default function AdminSalonPage() {
                         <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="address"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.address}
                           onChange={(e) => setSalonData({ ...salonData, address: e.target.value })}
                         />
@@ -475,7 +475,7 @@ export default function AdminSalonPage() {
                         <Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="website"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.website}
                           onChange={(e) => setSalonData({ ...salonData, website: e.target.value })}
                         />
@@ -488,7 +488,7 @@ export default function AdminSalonPage() {
                         <Instagram className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                         <Input
                           id="instagram"
-                          className="pl-10 border-border focus:border-primary"
+                          className="pl-10 border-2 border-primary border-opacity-60 focus:border-primary"
                           value={salonData.instagram}
                           onChange={(e) => setSalonData({ ...salonData, instagram: e.target.value })}
                         />
@@ -501,7 +501,7 @@ export default function AdminSalonPage() {
                     <Textarea
                       id="description"
                       placeholder="Conte sobre o seu salão, especialidades, diferenciais..."
-                      className="border-border focus:border-primary min-h-[100px]"
+                      className="border-2 border-primary border-opacity-60 focus:border-primary min-h-[100px]"
                       value={salonData.description}
                       onChange={(e) => setSalonData({ ...salonData, description: e.target.value })}
                     />
@@ -542,7 +542,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profName">Nome completo</Label>
                             <Input
                               id="profName"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newProfessional.name}
                               onChange={(e) => setNewProfessional({ ...newProfessional, name: e.target.value })}
                             />
@@ -552,7 +552,7 @@ export default function AdminSalonPage() {
                             <Input
                               id="profEmail"
                               type="email"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newProfessional.email}
                               onChange={(e) => setNewProfessional({ ...newProfessional, email: e.target.value })}
                             />
@@ -561,7 +561,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profPhone">Telefone</Label>
                             <Input
                               id="profPhone"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newProfessional.phone}
                               onChange={(e) => setNewProfessional({ ...newProfessional, phone: e.target.value })}
                             />
@@ -570,7 +570,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="profSpecialty">Especialidade</Label>
                             <Input
                               id="profSpecialty"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newProfessional.specialty}
                               onChange={(e) => setNewProfessional({ ...newProfessional, specialty: e.target.value })}
                             />
@@ -581,7 +581,7 @@ export default function AdminSalonPage() {
                               value={newProfessional.experience}
                               onValueChange={(value) => setNewProfessional({ ...newProfessional, experience: value })}
                             >
-                              <SelectTrigger className="border-border focus:border-primary">
+                              <SelectTrigger className="border-2 border-primary border-opacity-60 focus:border-primary">
                                 <SelectValue placeholder="Selecione a experiência" />
                               </SelectTrigger>
                               <SelectContent>
@@ -601,7 +601,7 @@ export default function AdminSalonPage() {
                               type="number"
                               min="0"
                               max="100"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newProfessional.commission}
                               onChange={(e) =>
                                 setNewProfessional({ ...newProfessional, commission: Number.parseInt(e.target.value) })
@@ -752,7 +752,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="serviceName">Nome do serviço</Label>
                             <Input
                               id="serviceName"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newService.name}
                               onChange={(e) => setNewService({ ...newService, name: e.target.value })}
                             />
@@ -763,7 +763,7 @@ export default function AdminSalonPage() {
                               value={newService.category}
                               onValueChange={(value) => setNewService({ ...newService, category: value })}
                             >
-                              <SelectTrigger className="border-border focus:border-primary">
+                              <SelectTrigger className="border-2 border-primary border-opacity-60 focus:border-primary">
                                 <SelectValue placeholder="Selecione a categoria" />
                               </SelectTrigger>
                               <SelectContent>
@@ -781,7 +781,7 @@ export default function AdminSalonPage() {
                               <Input
                                 id="serviceDuration"
                                 type="number"
-                                className="border-border focus:border-primary"
+                                className="border-2 border-primary border-opacity-60 focus:border-primary"
                                 value={newService.duration}
                                 onChange={(e) =>
                                   setNewService({ ...newService, duration: Number.parseInt(e.target.value) })
@@ -793,7 +793,7 @@ export default function AdminSalonPage() {
                               <Input
                                 id="servicePrice"
                                 type="number"
-                                className="border-border focus:border-primary"
+                                className="border-2 border-primary border-opacity-60 focus:border-primary"
                                 value={newService.price}
                                 onChange={(e) =>
                                   setNewService({ ...newService, price: Number.parseFloat(e.target.value) })
@@ -805,7 +805,7 @@ export default function AdminSalonPage() {
                             <Label htmlFor="serviceDescription">Descrição</Label>
                             <Textarea
                               id="serviceDescription"
-                              className="border-border focus:border-primary"
+                              className="border-2 border-primary border-opacity-60 focus:border-primary"
                               value={newService.description}
                               onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                             />
@@ -935,7 +935,7 @@ export default function AdminSalonPage() {
                     <Input
                       id={`${day}-open`}
                       type="time"
-                      className="w-24 border-border focus:border-primary bg-background text-foreground"
+                      className="w-24 border-2 border-primary border-opacity-60 focus:border-primary bg-background text-foreground"
                       value={hours.open}
                       onChange={(e) =>
                       setOperatingHours({
@@ -952,7 +952,7 @@ export default function AdminSalonPage() {
                     <Input
                       id={`${day}-close`}
                       type="time"
-                      className="w-24 border-border focus:border-primary bg-background text-foreground"
+                      className="w-24 border-2 border-primary border-opacity-60 focus:border-primary bg-background text-foreground"
                       value={hours.close}
                       onChange={(e) =>
                       setOperatingHours({

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
+import { hydrateRoot } from 'react-dom/client';
 import {
   Tooltip,
   TooltipContent,
@@ -644,16 +645,36 @@ const SidebarMenuBadge = React.forwardRef<
 ))
 SidebarMenuBadge.displayName = "SidebarMenuBadge"
 
+
+//start 
+
 const SidebarMenuSkeleton = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    showIcon?: boolean
+    showIcon?: boolean;
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+const getRandomWidth = () => `${Math.floor(Math.random() * 40) + 50}%`;
+const [width, setWidth] = React.useState(getRandomWidth);
+
+React.useEffect(() => {
+  const randomWidth = `${Math.floor(Math.random() * 40) + 50}%`;
+  setWidth(randomWidth);
+}, []);
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{ width }}
+      {...props}
+    >
+      {/* conteúdo */}
+    </div>
+  )
+
+//end
+
 
   return (
     <div

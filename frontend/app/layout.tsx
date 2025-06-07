@@ -8,12 +8,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  title: "BeautyBook - Plataforma para Salões de Beleza",
-  description: "Sistema completo de agendamento e gestão para salões de beleza",
-  generator: 'v0.dev'
-}
-
 export default function RootLayout({
   children,
 }: {
@@ -22,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="light" >
           <Navbar />
           <main>{children}</main>
           <Footer />

@@ -35,11 +35,10 @@ export function Navbar() {
   const role = user?.role
 
   const renderLinks = () => {
-
-     if (!mounted) {
-    // Exibe um indicador de carregamento enquanto o tema não está montado
+  if (!mounted) {
+    // Exibe um indicador de carregamento sem depender do tema
     return (
-      <span className={`${theme === "dark" ? "text-white" : "text-[#313131]"}`}>
+      <span className="text-[#313131]">
         Carregando...
       </span>
     )
@@ -167,8 +166,8 @@ return (
       {/* Mobile Menu */}
       {isOpen && (
         <div className={`md:hidden py-4 border-t ${theme === "dark" ? "border-[#222]" : "border-[#EFEFEF]"}`}>
-          <div className="hidden md:flex items-center space-x-6">
-  {renderLinks()}
+    <div className="flex flex-col items-center space-y-4">
+      {renderLinks()}
 </div>
             <div className={`pt-4 border-t ${theme === "dark" ? "border-[#222]" : "border-[#EFEFEF]"}`}>
               {!user ? (
@@ -202,3 +201,4 @@ return (
   </nav>
 )
 }
+ 
