@@ -9,7 +9,7 @@ import { useTheme } from "next-themes"
 // Substitua isso pelo seu hook real de autenticação
 const useAuth = () => {
   // Para visitante:
-   return { user: null }
+   //return { user: null }
 
   // Para usuário comum:
   //return { user: { role: "usuario" } }
@@ -18,7 +18,7 @@ const useAuth = () => {
    //return { user: { role: "profissional" } }
 
   // Para salão:
-  //return { user: { role: "salao" } }
+  return { user: { role: "salao" } }
 }
 
 
@@ -63,7 +63,7 @@ function renderLinks(user?: { role?: string } | null, theme?: string) {
   if (role === "salao") {
     return (
       <>
-        <Link href="/dashboard" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Dashboard</Link>
+        <Link href="/admin" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Dashboard</Link>
         <Link href="/my-salon" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Meu Salão</Link>
         <Link href="/appoint" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Agendamentos</Link>
         <Link href="/services" className={`${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]`}>Serviços</Link>
