@@ -33,12 +33,10 @@ export function Footer() {
               <Link href="/services" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
                 Serviços
               </Link>
-              <Link href="/about" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
+              <Link href="/about-us" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
                 Sobre Nós
               </Link>
-              <Link href="/contact" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
-                Contato
-              </Link>
+              
             </div>
           </div>
 
@@ -49,21 +47,13 @@ export function Footer() {
               <Link href="/help" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
                 Central de Ajuda
               </Link>
-              <Link href="/privacy" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
-                Privacidade
-              </Link>
-              <Link href="/terms" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
-                Termos de Uso
-              </Link>
-              <Link href="/faq" className="block text-white/70 hover:text-[#FF96B2] transition-colors">
-                FAQ
-              </Link>
+              
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/20 mt-8 pt-8 text-center text-white/70">
-          <p>&copy; 2024 BeautyBook. Todos os direitos reservados.</p>
+          <p>&copy; 2024 BeautyHub Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
