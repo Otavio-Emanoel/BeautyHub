@@ -101,3 +101,40 @@ export async function updateServiceDuration(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao atualizar duração do serviço", details: error.message });
     }
 }
+
+export async function registerProfessional(req: Request, res: Response) {
+    const { name, email, phone, password } = req.body;
+
+    if (!name || !email || !phone || !password) {
+        return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+    }
+
+    try {
+        // Criação do usuário no Firebase Auth
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: name,
+            phoneNumber: phone
+        });
+
+        // Dados do profissional
+        const professionalData = {
+            uid: userRecord.uid,
+            name,
+            email,
+            phone,
+            role: "professional",
+            createdAt: new Date(),
+            salonId: null // autônomo inicialmente
+        };
+
+   
+        await admin.firestore().collection('users').doc(userRecord.uid).set(professionalData);
+        await admin.firestore().collection('professionals').doc(userRecord.uid).set(professionalData);
+
+        res.status(201).json({ message: "Profissional cadastrado com sucesso", uid: userRecord.uid });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao cadastrar profissional", details: error.message });
+    }
+}

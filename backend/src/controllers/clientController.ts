@@ -3,18 +3,20 @@ import admin, { auth, firestore } from '../config/firebase';
 
 // Cadastro de cliente
 export async function registerClient(req: Request, res: Response) {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
     try {
         const userRecord = await admin.auth().createUser({
             email,
             password,
-            displayName: name
+            displayName: name,
+            phoneNumber: phone
         });
 
         // Salva os dados do cliente no Firestore
         await admin.firestore().collection('users').doc(userRecord.uid).set({
             name,
             email,
+            phone,
             role: 'client',
             createdAt: new Date().toISOString()
         });

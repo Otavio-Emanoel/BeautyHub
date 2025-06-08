@@ -3,18 +3,20 @@ import admin from '../config/firebase';
 import { create } from "domain";
 
 export async function registerAdmin(req: Request, res: Response) {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
     try {
         // Cria usuário no Auth
         const userRecord = await admin.auth().createUser({
             email,
             password,
-            displayName: name
+            displayName: name,
+            phoneNumber: phone
         })
         // Salva os dados do administrador no Firestore
         await admin.firestore().collection('users').doc(userRecord.uid).set({
             name,
             email,
+            phone,
             role: 'admin',
             createdAt: new Date().toISOString()
         })

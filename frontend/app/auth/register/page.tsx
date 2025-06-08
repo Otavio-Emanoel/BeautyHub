@@ -29,9 +29,9 @@ export default function RegisterPage() {
 
     let endpoint = "";
     if (formData.userType === "client") {
-      endpoint = `${API_URL}/api/clients/register`;
+      endpoint = `${API_URL}/api/client/register`;
     } else if (formData.userType === "professional") {
-      endpoint = `${API_URL}/api/professionals/register`;
+      endpoint = `${API_URL}/api/professional/register`;
     } else if (formData.userType === "salon_admin") {
       endpoint = `${API_URL}/api/admin/register`;
     } else {

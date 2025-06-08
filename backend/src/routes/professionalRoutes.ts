@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = Router();
@@ -15,5 +15,8 @@ router.get("/schedules", authenticateToken, listProfessionalAppointments);
 
 // Rota para definir tempo médio de por serviço
 router.patch("/service/:serviceId/duration", authenticateToken, updateServiceDuration);
+
+// Rota de cadastro de profissional autônomo
+router.post('/register', registerProfessional);
 
 export default router;
