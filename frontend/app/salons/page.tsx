@@ -148,7 +148,12 @@ export default function SalonsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className={`flex-1 bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white`}>Agendar</Button>
+                  <Button
+                    className={`flex-1 bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white`}
+                    onClick={() => window.location.href = "/booking"}
+                  >
+                    Agendar
+                  </Button>
                   <Button
                     variant="outline"
                     className={outlineBtn}

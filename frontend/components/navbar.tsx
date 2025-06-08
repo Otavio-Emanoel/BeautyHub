@@ -12,13 +12,13 @@ const useAuth = () => {
    //return { user: null }
 
   // Para usuário comum:
-  //return { user: { role: "usuario" } }
+  return { user: { role: "usuario" } }
 
   // Para profissional:
    //return { user: { role: "profissional" } }
 
   // Para salão:
-  return { user: { role: "salao" } }
+  //return { user: { role: "salao" } }
 }
 
 
