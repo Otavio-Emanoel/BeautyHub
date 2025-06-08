@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react"
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -22,10 +26,14 @@ export default function RegisterPage() {
     userType: "",
   })
 
+  const router = useRouter();
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log(formData);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     let endpoint = "";
     if (formData.userType === "client") {
@@ -41,28 +49,39 @@ export default function RegisterPage() {
 
     // Requisição com o backend
     try {
-      const response = await fetch(endpoint, {
+      // Cadastro
+      const response = await fetch(`${API_URL}/api/client/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
-          userType: formData.userType,
         }),
-      })
+      });
 
       const data = await response.json();
-      if (response.ok) {
-        // Cadastro realizado com sucesso
-        alert("Cadastro realizado!");
-      } else {
-        // Erro no cadastro
-        alert(data.message || "Erro ao cadastrar");
-      }
+
+      alert(data.error || data.message || "Erro ao cadastrar");
+
+      if (!response.ok) return;
+
+
+      // Cadastro realizado com sucesso
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      )
+
+      const token = await userCredential.user.getIdToken();
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userType", formData.userType);
+
+      // Redireciona para a página inicial ou dashboard
+      router.push("/");
 
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error)

@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {registerClient, loginClient, updateClientProfile} from '../controllers/clientController';
+import {registerClient, loginClient, updateClientProfile, getClientProfile} from '../controllers/clientController';
 import {authenticateToken} from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -12,5 +12,8 @@ router.post('/login', loginClient);
 
 // Rota de atualização de perfil do cliente
 router.put('/profile', authenticateToken, updateClientProfile);
+
+// Rota de busca de perfil do cliente
+router.get('/profile', authenticateToken, getClientProfile);
 
 export default router;
