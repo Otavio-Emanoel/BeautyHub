@@ -1,9 +1,28 @@
+'use client';
+
+
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Star, Users } from "lucide-react"
 import Link from "next/link"
 
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { useEffect, useState } from "react";
+
+
 export default function HomePage() {
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#18181b]">
       {/* Hero Section */}
@@ -15,23 +34,47 @@ export default function HomePage() {
           Gerencie agendamentos, clientes e serviços de forma inteligente e moderna
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/auth/register">
-            <Button
-          size="lg"
-          className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:hover:bg-[#232326]"
-            >
-          Começar Gratuitamente
-            </Button>
-          </Link>
-          <Link href="/auth/login">
-            <Button
-          size="lg"
-          variant="outline"
-          className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:border-[#FF96B2] dark:hover:bg-[#232326]"
-            >
-          Fazer Login
-            </Button>
-          </Link>
+          {user ? (
+                <>
+                  <Link href="/perfil">
+                    <Button
+                      size="lg"
+                      className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:hover:bg-[#232326]"
+                    >
+                      Ir para o Perfil
+                    </Button>
+                  </Link>
+                  <Link href="/explorar">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:border-[#FF96B2] dark:hover:bg-[#232326]"
+                    >
+                      Explorar
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/register">
+                    <Button
+                      size="lg"
+                      className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:hover:bg-[#232326]"
+                    >
+                      Começar Gratuitamente
+                    </Button>
+                  </Link>
+                  <Link href="/auth/login">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="bg-white text-[#FF96B2] hover:bg-[#EFEFEF] font-semibold dark:bg-[#18181b] dark:text-[#FF96B2] dark:border-[#FF96B2] dark:hover:bg-[#232326]"
+                    >
+                      Fazer Login
+                    </Button>
+                  </Link>
+                </>
+              )}
         </div>
           </div>
         </div>
