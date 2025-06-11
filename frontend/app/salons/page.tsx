@@ -154,12 +154,13 @@ export default function SalonsPage() {
                   >
                     Agendar
                   </Button>
-                  <Button
+                    <Button
                     variant="outline"
                     className={outlineBtn}
-                  >
+                    onClick={() => window.location.href = "/view"}
+                    >
                     Ver mais
-                  </Button>
+                    </Button>
                 </div>
               </CardContent>
             </Card>
