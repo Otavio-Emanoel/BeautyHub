@@ -138,3 +138,11 @@ export async function registerProfessional(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao cadastrar profissional", details: error.message });
     }
 }
+
+export async function getProfessionalProfile(req: Request, res: Response) {
+    const uid = req.users?.uid;
+    if (!uid) return res.status(401).json({ error: "Usuário não autenticado" });
+    const userDoc = await admin.firestore().collection('users').doc(uid).get();
+    if (!userDoc.exists) return res.status(404).json({ error: "Usuário não encontrado" });
+    return res.status(200).json(userDoc.data());
+}
