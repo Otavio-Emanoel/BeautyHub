@@ -50,7 +50,7 @@ export default function RegisterPage() {
     // Requisição com o backend
     try {
       // Cadastro
-      const response = await fetch(`${API_URL}/api/client/register`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

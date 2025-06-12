@@ -72,17 +72,20 @@ export function Navbar() {
   const { resolvedTheme, setTheme, theme } = useTheme()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser)
-        setLocalUser(parsedUser)
-      } catch (error) {
-        console.error("Erro ao analisar user do localStorage", error)
-      }
-    }
-    setMounted(true)
-  }, [])
+    const updateUser = () => {
+      const storedUser = localStorage.getItem("user");
+      setLocalUser(storedUser ? JSON.parse(storedUser) : null);
+    };
+    updateUser(); 
+
+    window.addEventListener("userChanged", updateUser);
+    return () => window.removeEventListener("userChanged", updateUser);
+  }, []);
+
+  // Adicione este useEffect:
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (
@@ -190,7 +193,11 @@ export function Navbar() {
               ) : (
                 <Button
                   variant="ghost"
-                  onClick={() => signOut(auth)}
+                  onClick={() => {
+                    signOut(auth)
+                    window.location.reload();
+                  }
+                  }
                   className={`w-full justify-start ${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
                 >
                   Sair
