@@ -1,213 +1,243 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import {
-  User,
-  Camera,
-  Plus,
-  Edit,
-  Trash2,
-  Upload,
-  FileText,
-  Award,
-  Scissors,
-  MapPin,
-  Phone,
-  Mail,
-  Instagram,
-  Star,
-  Clock,
-  DollarSign,
-} from "lucide-react"
+import { User, Camera, MapPin, Phone, Mail, Instagram, LogOut, Plus, Badge, Edit, Trash2, Clock, DollarSign, Award, FileText, Scissors, Star } from "lucide-react"
+import { signOut } from "firebase/auth"
+import { auth } from "@/lib/firebase"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@radix-ui/react-select"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@radix-ui/react-dialog"
+import { DialogHeader } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from "@radix-ui/react-alert-dialog"
+import { AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog"
 
 export default function ProfessionalProfilePage() {
-  const [profileData, setProfileData] = useState({
-    name: "Ana Costa",
-    email: "ana.costa@email.com",
-    phone: "(11) 99999-9999",
-    bio: "Profissional especializada em cortes modernos e coloração. Mais de 8 anos de experiência transformando looks e autoestima.",
-    experience: "8 anos",
-    location: "São Paulo, SP",
-    instagram: "@anacosta_hair",
-    facebook: "Ana Costa Hair",
+  const [profileData, setProfileData] = useState<any>({
+    name: "",
+    email: "",
+    phone: "",
+    experience: "",
+    location: "",
+    instagram: "",
+    bio: "",
+    avatar: "",
   })
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
 
-  const [services, setServices] = useState([
+  /* Só pra funcionar as outras abas por enquanto */
+
+  // MOCKS para as outras abas
+  const [services] = useState([
     {
-      id: 1,
+      id: "1",
       name: "Corte Feminino",
-      description: "Corte personalizado de acordo com o formato do rosto e estilo pessoal",
+      category: "Cabelo",
       duration: 60,
       price: 80,
-      category: "Cabelo",
+      description: "Corte moderno e personalizado para mulheres.",
     },
     {
-      id: 2,
-      name: "Coloração Completa",
-      description: "Coloração profissional com produtos de alta qualidade",
-      duration: 180,
-      price: 200,
-      category: "Cabelo",
-    },
-    {
-      id: 3,
-      name: "Luzes e Mechas",
-      description: "Técnicas modernas de iluminação capilar",
-      duration: 240,
-      price: 300,
-      category: "Cabelo",
+      id: "2",
+      name: "Manicure",
+      category: "Unhas",
+      duration: 40,
+      price: 35,
+      description: "Manicure completa com esmaltação.",
     },
   ])
-
-  const [certifications, setCertifications] = useState([
+  const [certifications] = useState([
     {
-      id: 1,
-      name: "Curso de Colorimetria Avançada",
-      institution: "Instituto de Beleza SP",
-      year: "2023",
-      document: "certificado_colorimetria.pdf",
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Especialização em Cortes Modernos",
-      institution: "Academia Hair Fashion",
+      id: "1",
+      name: "Colorimetria Avançada",
+      institution: "Instituto Beleza Pro",
       year: "2022",
-      document: "diploma_cortes.pdf",
       verified: true,
+      document: "colorimetria.pdf",
     },
     {
-      id: 3,
-      name: "Curso de Química Capilar",
-      institution: "Centro de Estudos Capilares",
+      id: "2",
+      name: "Design de Sobrancelhas",
+      institution: "Senac",
       year: "2021",
-      document: "certificado_quimica.pdf",
       verified: false,
+      document: "",
     },
   ])
-
-  const [portfolio, setPortfolio] = useState([
+  const [portfolio] = useState([
     {
-      id: 1,
-      image: "/placeholder.svg?height=300&width=300",
-      title: "Transformação Loiro Platinado",
-      description: "Processo de descoloração e tonalização",
-      category: "Coloração",
+      id: "1",
+      image: "/placeholder.svg",
+      title: "Corte Long Bob",
+      description: "Transformação com corte moderno.",
+      category: "Cabelo",
     },
     {
-      id: 2,
-      image: "/placeholder.svg?height=300&width=300",
-      title: "Corte Bob Moderno",
-      description: "Corte bob com camadas sutis",
-      category: "Corte",
+      id: "2",
+      image: "/placeholder.svg",
+      title: "Unhas Decoradas",
+      description: "Tendência verão 2025.",
+      category: "Unhas",
     },
     {
-      id: 3,
-      image: "/placeholder.svg?height=300&width=300",
-      title: "Mechas Babylights",
-      description: "Técnica de mechas naturais",
-      category: "Coloração",
+      id: "3",
+      image: "/placeholder.svg",
+      title: "Coloração Platinada",
+      description: "Platinado perfeito sem danificar os fios.",
+      category: "Cabelo",
     },
   ])
 
   const [newService, setNewService] = useState({
     name: "",
-    description: "",
+    category: "",
     duration: 60,
     price: 0,
-    category: "",
+    description: "",
   })
+  const handleAddService = () => {
+    // Apenas limpa o formulário, não adiciona de verdade
+    setNewService({
+      name: "",
+      category: "",
+      duration: 60,
+      price: 0,
+      description: "",
+    })
+  }
+  const handleDeleteService = (id: string) => {
+    // Não faz nada, só para não dar erro
+  }
 
+  // MOCK para adicionar certificação
   const [newCertification, setNewCertification] = useState({
     name: "",
     institution: "",
     year: "",
-    document: null as File | null,
+    document: "",
   })
-
-  const handleSaveProfile = () => {
-    console.log("Profile saved:", profileData)
-  }
-
-  const handleAddService = () => {
-    if (newService.name && newService.description && newService.category) {
-      setServices([...services, { ...newService, id: Date.now() }])
-      setNewService({ name: "", description: "", duration: 60, price: 0, category: "" })
-    }
-  }
-
-  const handleDeleteService = (serviceId: number) => {
-    setServices(services.filter((service) => service.id !== serviceId))
-  }
-
   const handleAddCertification = () => {
-    if (newCertification.name && newCertification.institution && newCertification.year) {
-      setCertifications([
-        ...certifications,
-        {
-          ...newCertification,
-          id: Date.now(),
-          document: newCertification.document?.name || "",
-          verified: false,
-        },
-      ])
-      setNewCertification({ name: "", institution: "", year: "", document: null })
-    }
+    setNewCertification({
+      name: "",
+      institution: "",
+      year: "",
+      document: "",
+    })
+  }
+  const handleDeleteCertification = (id: string) => {
+    // Não faz nada, só para não dar erro
+  }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+    // Não faz nada, só para não dar erro
   }
 
-  const handleDeleteCertification = (certId: number) => {
-    setCertifications(certifications.filter((cert) => cert.id !== certId))
-  }
+  /* Chega já */
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (type === "certification") {
-        setNewCertification({ ...newCertification, document: file })
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setLoading(true)
+      setError("")
+      const localUser = JSON.parse(localStorage.getItem("user") || "{}")
+      if (!localUser || localUser.role !== "professional") {
+        router.push("/auth/login")
+        return
       }
-      console.log(`${type} file uploaded:`, file.name)
+      try {
+        const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/professional/profile", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        })
+        if (!res.ok) throw new Error("Erro ao buscar perfil")
+        const data = await res.json()
+        setProfileData({
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          experience: data.experience || "",
+          location: data.location || "",
+          instagram: data.instagram || "",
+          bio: data.bio || data.about || "",
+          avatar: data.avatar || "",
+        })
+      } catch (e: any) {
+        setError("Erro ao buscar perfil")
+        router.push("/auth/login")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfileData()
+  }, [router])
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError("")
+    const formData = new FormData()
+    formData.append("photo", file)
+    try {
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/professional/profile/photo", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: formData,
+      })
+      if (!res.ok) throw new Error("Erro ao enviar foto")
+      const data = await res.json()
+      setProfileData((prev: any) => ({ ...prev, avatar: data.avatar }))
+      alert("Foto atualizada com sucesso!")
+    } catch (e) {
+      setError("Erro ao enviar foto")
+    } finally {
+      setUploading(false)
     }
   }
+
+  const handleSaveProfile = async () => {
+    setError("")
+    try {
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/professional/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(profileData),
+      })
+      if (!res.ok) throw new Error("Erro ao atualizar perfil")
+      alert("Perfil atualizado com sucesso!")
+    } catch (e) {
+      setError("Erro ao atualizar perfil")
+    }
+  }
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    localStorage.removeItem("user")
+    localStorage.removeItem("token")
+    window.dispatchEvent(new Event("userChanged"))
+    router.push("/auth/login")
+  }
+
+  if (loading) return <div>Carregando...</div>
+  if (error) return <div className="text-red-500">{error}</div>
+  if (!profileData) return <div>Usuário não encontrado</div>
 
   return (
     <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Meu Perfil Profissional</h1>
           <p className="text-[#313131]/70 dark:text-white/70">Gerencie suas informações, serviços e qualificações</p>
         </div>
-
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">Perfil</TabsTrigger>
@@ -216,11 +246,10 @@ export default function ProfessionalProfilePage() {
             <TabsTrigger value="portfolio">Portfólio</TabsTrigger>
             <TabsTrigger value="preview">Visualizar</TabsTrigger>
           </TabsList>
-
           {/* Profile Tab */}
           <TabsContent value="profile">
             <div className="grid lg:grid-cols-3 gap-6">
-              {/* Profile Picture */}
+              {/* Foto do perfil */}
               <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
                 <CardHeader className="text-center">
                   <CardTitle className="text-[#313131] dark:text-white">Foto Profissional</CardTitle>
@@ -229,35 +258,40 @@ export default function ProfessionalProfilePage() {
                 <CardContent className="text-center space-y-4">
                   <div className="relative inline-block">
                     <Avatar className="w-32 h-32 mx-auto">
-                      <AvatarImage src="/placeholder.svg?height=128&width=128" />
+                      <AvatarImage src={profileData.avatar || "/placeholder.svg?height=128&width=128"} />
                       <AvatarFallback className="text-2xl bg-[#FF96B2] dark:bg-[#FF5C8A] text-white">
                         {profileData.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: string) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
-                    <Button
-                      size="sm"
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </Button>
+                    <label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoChange}
+                        disabled={uploading}
+                      />
+                      <Button
+                        size="sm"
+                        className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90"
+                        asChild
+                        disabled={uploading}
+                      >
+                        <span>
+                          <Camera className="w-4 h-4" />
+                        </span>
+                      </Button>
+                    </label>
                   </div>
                   <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full border-[#FF96B2] dark:border-[#FF5C8A] text-[#FF96B2] dark:text-[#FF5C8A] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF5C8A] dark:hover:text-white"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Alterar Foto
-                    </Button>
                     <p className="text-xs text-[#313131]/50 dark:text-white/50">Recomendado: 400x400px, máximo 2MB</p>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Profile Form */}
+              {/* Formulário de perfil */}
               <Card className="lg:col-span-2 border-0 shadow-lg bg-white dark:bg-[#232326]">
                 <CardHeader>
                   <CardTitle className="text-[#313131] dark:text-white">Informações Pessoais</CardTitle>
@@ -277,7 +311,6 @@ export default function ProfessionalProfilePage() {
                         />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="experience" className="dark:text-white">Experiência</Label>
                       <Select
@@ -297,7 +330,6 @@ export default function ProfessionalProfilePage() {
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="email" className="dark:text-white">E-mail</Label>
                       <div className="relative">
@@ -311,7 +343,6 @@ export default function ProfessionalProfilePage() {
                         />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="dark:text-white">Telefone</Label>
                       <div className="relative">
@@ -324,7 +355,6 @@ export default function ProfessionalProfilePage() {
                         />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="location" className="dark:text-white">Localização</Label>
                       <div className="relative">
@@ -337,7 +367,6 @@ export default function ProfessionalProfilePage() {
                         />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="instagram" className="dark:text-white">Instagram</Label>
                       <div className="relative">
@@ -351,7 +380,6 @@ export default function ProfessionalProfilePage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="bio" className="dark:text-white">Sobre você</Label>
                     <Textarea
@@ -362,10 +390,22 @@ export default function ProfessionalProfilePage() {
                       onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
                     />
                   </div>
-
-                  <Button className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white" onClick={handleSaveProfile}>
-                    Salvar Perfil
-                  </Button>
+                  <div className="flex space-x-4 mt-4">
+                    <Button
+                      className="flex-1 bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
+                      onClick={handleSaveProfile}
+                    >
+                      Salvar Perfil
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-[#FF96B2] dark:border-[#FF5C8A] text-[#FF96B2] dark:text-[#FF5C8A] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF5C8A] dark:hover:text-white"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair da Conta
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -731,7 +771,7 @@ export default function ProfessionalProfilePage() {
                       <AvatarFallback className="text-xl bg-[#FF96B2] dark:bg-[#FF5C8A] text-white">
                         {profileData.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: any) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
