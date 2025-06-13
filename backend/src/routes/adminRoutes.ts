@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional, generateSalonReport } from "../controllers/adminController";
+import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional, generateSalonReport, getAdminProfile } from "../controllers/adminController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { createService } from "../controllers/serviceController";
 import { deleteService } from "../controllers/serviceController";
@@ -32,5 +32,8 @@ router.delete("/services/:id", authenticateToken, deleteService);
 
 // Rota para gerar relatório do salão
 router.get("/salon/report", authenticateToken, generateSalonReport);
+
+// Rota para obter o perfil do administrador
+router.get("/profile", authenticateToken, getAdminProfile);
 
 export default router;
