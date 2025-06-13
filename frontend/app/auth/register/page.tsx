@@ -75,7 +75,8 @@ export default function RegisterPage() {
         formData.password
       )
 
-      const token = await userCredential.user.getIdToken();
+      const token = await userCredential.user.getIdToken(true); 
+      localStorage.setItem("token", token);
 
       localStorage.setItem("token", token);
       localStorage.setItem("userType", formData.userType);

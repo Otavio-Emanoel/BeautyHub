@@ -25,7 +25,8 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      const token = await user.getIdToken();
+      const token = await userCredential.user.getIdToken(true); 
+      localStorage.setItem("token", token);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/client/profile`, {
         headers: {
@@ -48,7 +49,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);      
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
       router.push("/"); // Redireciona para a home
     } catch (error: any) {
       alert("Erro ao fazer login: " + error.message);

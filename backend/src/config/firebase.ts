@@ -6,6 +6,7 @@ if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: process.env.FIREBASE_DATABASE_URL,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET, 
   });
 }
 // Verifica se a permissão de listar usuários está funcionando

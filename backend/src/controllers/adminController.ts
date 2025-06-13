@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import admin from '../config/firebase';
 import { create } from "domain";
+import { getStorage } from "firebase-admin/storage";
 
 export async function registerAdmin(req: Request, res: Response) {
     const { email, password, name, phone } = req.body;
@@ -206,10 +207,35 @@ export async function generateSalonReport(req: Request, res: Response) {
     }
 }
 
+// Pega o perfil do administrador logado
 export async function getAdminProfile(req: Request, res: Response) {
     const uid = req.users?.uid;
     if (!uid) return res.status(401).json({ error: "Usuário não autenticado" });
     const userDoc = await admin.firestore().collection('users').doc(uid).get();
     if (!userDoc.exists) return res.status(404).json({ error: "Usuário não encontrado" });
     return res.status(200).json(userDoc.data());
+}
+
+export async function uploadAdminProfilePicture(req: any, res: any) {
+  const uid = req.users?.uid;
+  if (!uid) return res.status(401).json({ error: "Não autenticado" });
+  if (!req.file) return res.status(400).json({ error: "Nenhuma imagem enviada" });
+
+  const bucket = getStorage().bucket();
+  const fileName = `profile_photos/${uid}_${Date.now()}.jpg`;
+  const file = bucket.file(fileName);
+
+  await file.save(req.file.buffer, {
+    metadata: { contentType: req.file.mimetype }
+  });
+
+  const [url] = await file.getSignedUrl({
+    action: "read",
+    expires: "03-09-2491"
+  });
+
+  // Salva a URL no Firestore
+  await admin.firestore().collection("users").doc(uid).update({ avatar: url });
+
+  return res.json({ avatar: url });
 }

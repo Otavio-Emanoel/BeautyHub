@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional, generateSalonReport, getAdminProfile } from "../controllers/adminController";
+import { registerAdmin, createSalon, registerProfessional, updateSalonProfile, dismissProfessional, hireProfessional, generateSalonReport, getAdminProfile, uploadAdminProfilePicture } from "../controllers/adminController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { createService } from "../controllers/serviceController";
 import { deleteService } from "../controllers/serviceController";
+
+import multer from "multer";
+
+const upload = multer({ storage: multer.memoryStorage() });
+
 
 const router = Router();
 
@@ -35,5 +40,8 @@ router.get("/salon/report", authenticateToken, generateSalonReport);
 
 // Rota para obter o perfil do administrador
 router.get("/profile", authenticateToken, getAdminProfile);
+
+// Rota para adicionar foto de perfil do administrador
+router.post('/profile/photo', authenticateToken, upload.single('photo'), uploadAdminProfilePicture);
 
 export default router;

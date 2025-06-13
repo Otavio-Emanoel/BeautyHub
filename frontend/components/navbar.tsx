@@ -76,7 +76,7 @@ export function Navbar() {
       const storedUser = localStorage.getItem("user");
       setLocalUser(storedUser ? JSON.parse(storedUser) : null);
     };
-    updateUser(); 
+    updateUser();
 
     window.addEventListener("userChanged", updateUser);
     return () => window.removeEventListener("userChanged", updateUser);
@@ -194,8 +194,11 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    signOut(auth)
-                    window.location.reload();
+                    signOut(auth);
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    window.dispatchEvent(new Event("userChanged"));
+                    setLocalUser(null);
                   }
                   }
                   className={`w-full justify-start ${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}

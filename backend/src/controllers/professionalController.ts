@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import admin from '../config/firebase';
+import { getStorage } from "firebase-admin/storage";
 
 export async function updateProfessionalProfile(req: Request, res: Response) {
     const uid = req.users?.uid
@@ -139,10 +140,36 @@ export async function registerProfessional(req: Request, res: Response) {
     }
 }
 
+// pega o perfil do profissional logado
 export async function getProfessionalProfile(req: Request, res: Response) {
     const uid = req.users?.uid;
     if (!uid) return res.status(401).json({ error: "Usuário não autenticado" });
     const userDoc = await admin.firestore().collection('users').doc(uid).get();
     if (!userDoc.exists) return res.status(404).json({ error: "Usuário não encontrado" });
     return res.status(200).json(userDoc.data());
+}
+
+// Upload da foto de perfil do profissional
+export async function uploadProfessionalProfilePicture(req: any, res: any) {
+  const uid = req.users?.uid;
+  if (!uid) return res.status(401).json({ error: "Não autenticado" });
+  if (!req.file) return res.status(400).json({ error: "Nenhuma imagem enviada" });
+
+  const bucket = getStorage().bucket();
+  const fileName = `profile_photos/${uid}_${Date.now()}.jpg`;
+  const file = bucket.file(fileName);
+
+  await file.save(req.file.buffer, {
+    metadata: { contentType: req.file.mimetype }
+  });
+
+  const [url] = await file.getSignedUrl({
+    action: "read",
+    expires: "03-09-2491"
+  });
+
+  // Salva a URL no Firestore
+  await admin.firestore().collection("users").doc(uid).update({ avatar: url });
+
+  return res.json({ avatar: url });
 }
