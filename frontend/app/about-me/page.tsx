@@ -143,6 +143,12 @@ export default function ProfessionalProfilePage() {
   /* Chega já */
 
   useEffect(() => {
+
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/auth/login")
+      return
+    }
     const fetchProfileData = async () => {
       setLoading(true)
       setError("")
@@ -174,6 +180,8 @@ export default function ProfessionalProfilePage() {
         setLoading(false)
       }
     }
+
+
     fetchProfileData()
   }, [router])
 

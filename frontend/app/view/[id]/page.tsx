@@ -10,11 +10,10 @@ export default function SalonDetailsPage() {
 
   useEffect(() => {
     async function fetchSalon() {
-      const res = await fetch(`/api/saloes/${id}`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/salons/${id}`)
       const data = await res.json()
       setSalon(data)
     }
-
     fetchSalon()
   }, [id])
 
@@ -26,7 +25,7 @@ export default function SalonDetailsPage() {
       <div className="space-y-3">
         <h1 className="text-4xl font-bold">{salon.name}</h1>
         <Image
-          src={salon.image}
+          src={salon.image || "/placeholder.svg"}
           alt={salon.name}
           width={1200}
           height={600}
@@ -38,23 +37,25 @@ export default function SalonDetailsPage() {
       <div className="grid md:grid-cols-2 gap-6 text-lg">
         <div>
           <p><strong>Endereço:</strong> {salon.address}</p>
-          <p><strong>Horário de Funcionamento:</strong> {salon.openTime} - {salon.closeTime}</p>
+          <p><strong>Horário de Funcionamento:</strong> {salon.openTime || "08:00"} - {salon.closeTime || "18:00"}</p>
           <p className="flex items-center gap-2">
             <FaPhoneAlt className="text-pink-500" />
             {salon.phone}
           </p>
-          <a href={salon.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-pink-600 hover:underline">
-            <FaInstagram />
-            @{salon.instagramHandle}
-          </a>
+          {salon.instagram && (
+            <a href={salon.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-pink-600 hover:underline">
+              <FaInstagram />
+              @{salon.instagram.replace("https://instagram.com/", "")}
+            </a>
+          )}
         </div>
         <div>
           <p className="flex items-center gap-2 text-yellow-500 text-xl">
             <FaStar />
-            {salon.rating.toFixed(1)} / 5.0
+            {(salon.rating || 4.5).toFixed(1)} / 5.0
           </p>
-          <p className="text-gray-600">{salon.reviewsCount} avaliações</p>
-          <p className="mt-2 italic">"{salon.latestReview}"</p>
+          <p className="text-gray-600">{salon.reviewsCount || 0} avaliações</p>
+          {salon.latestReview && <p className="mt-2 italic">"{salon.latestReview}"</p>}
         </div>
       </div>
 
@@ -81,8 +82,8 @@ export default function SalonDetailsPage() {
       <div>
         <h2 className="text-2xl font-semibold mb-2">Serviços oferecidos</h2>
         <ul className="list-disc list-inside space-y-1 text-lg">
-          {salon.services.map((s: string, i: number) => (
-            <li key={i}>{s}</li>
+          {salon.services?.map((s: any, i: number) => (
+            <li key={i}>{s.name} - R$ {s.price}</li>
           ))}
         </ul>
       </div>
@@ -91,10 +92,10 @@ export default function SalonDetailsPage() {
       <div>
         <h2 className="text-2xl font-semibold mb-2">Equipe de profissionais</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salon.professionals.map((pro: any) => (
+          {salon.professionals?.map((pro: any) => (
             <div key={pro.id} className="bg-white p-4 rounded-xl shadow-md text-center">
               <Image
-                src={pro.photo}
+                src={pro.avatar || "/placeholder.svg"}
                 alt={pro.name}
                 width={120}
                 height={120}

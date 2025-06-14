@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -9,58 +10,93 @@ import { Textarea } from "@/components/ui/textarea"
 import { User, Scissors, CalendarIcon } from "lucide-react"
 
 export default function BookingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const salonId = searchParams.get("salonId") // Exemplo: /booking?salonId=abc123
+
+  const [services, setServices] = useState<any[]>([])
+  const [professionals, setProfessionals] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [selectedTime, setSelectedTime] = useState("")
-  const [selectedService, setSelectedService] = useState("")
-  const [selectedProfessional, setSelectedProfessional] = useState("")
+  const [selectedService, setSelectedService] = useState<any>(null)
+  const [selectedProfessional, setSelectedProfessional] = useState<any>(null)
   const [notes, setNotes] = useState("")
+  const [loading, setLoading] = useState(true)
 
-  const services = [
-    { id: 1, name: "Corte Feminino", duration: "45 min", price: "R$ 80" },
-    { id: 2, name: "Corte Masculino", duration: "30 min", price: "R$ 50" },
-    { id: 3, name: "Escova", duration: "60 min", price: "R$ 60" },
-    { id: 4, name: "Coloração", duration: "120 min", price: "R$ 150" },
-    { id: 5, name: "Manicure", duration: "45 min", price: "R$ 35" },
-    { id: 6, name: "Pedicure", duration: "60 min", price: "R$ 45" },
-  ]
-
-  const professionals = [
-    { id: 1, name: "Ana Costa", specialty: "Cortes e Coloração", rating: 4.9 },
-    { id: 2, name: "Carlos Lima", specialty: "Cortes Masculinos", rating: 4.8 },
-    { id: 3, name: "Lucia Mendes", specialty: "Manicure e Pedicure", rating: 4.7 },
-  ]
-
+  // Horários disponíveis (mock)
   const timeSlots = [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
+    "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"
   ]
 
-  const handleBooking = () => {
-    // Implementar lógica de agendamento
-    console.log({
-      date: selectedDate,
-      time: selectedTime,
-      service: selectedService,
-      professional: selectedProfessional,
-      notes,
-    })
+  // Buscar serviços e profissionais do salão
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
+      try {
+        // Se não tiver salonId, redireciona ou mostra erro
+        if (!salonId) {
+          alert("Salão não selecionado!")
+          router.push("/salons")
+          return
+        }
+        // Busca dados do salão
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/salons/${salonId}`)
+        const data = await res.json()
+        setServices(data.services || [])
+        setProfessionals(data.professionals || [])
+      } catch (e) {
+        setServices([])
+        setProfessionals([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [salonId, router])
+
+  // Função para agendar
+  const handleBooking = async () => {
+  // Verifica se está logado
+  const token = localStorage.getItem("token")
+  if (!token) {
+    alert("Você precisa estar logado para agendar!")
+    router.push("/auth/login")
+    return
   }
+
+  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+    alert("Preencha todos os campos!")
+    return
+  }
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        salonId,
+        serviceId: selectedService.id,
+        professionalId: selectedProfessional.id,
+        date: selectedDate.toISOString().split("T")[0],
+        time: selectedTime,
+        note: notes,
+      }),
+    })
+    if (!res.ok) throw new Error("Erro ao agendar")
+    alert("Agendamento realizado com sucesso!")
+    router.push("/appoint")
+  } catch (e) {
+    alert("Erro ao agendar")
+  }
+}
+
+  if (loading) return <div className="p-6">Carregando...</div>
 
   return (
     <div className="min-h-screen bg-[#EFEFEF] p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#313131] mb-2">Agendar Serviço</h1>
           <p className="text-[#313131]/70">Escolha o serviço, profissional e horário desejado</p>
@@ -83,18 +119,18 @@ export default function BookingPage() {
                     <div
                       key={service.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedService === service.name
+                        selectedService?.id === service.id
                           ? "border-[#FF96B2] bg-[#FF96B2]/10"
                           : "border-[#EFEFEF] hover:border-[#FF96B2]/50"
                       }`}
-                      onClick={() => setSelectedService(service.name)}
+                      onClick={() => setSelectedService(service)}
                     >
                       <h3 className="font-medium text-[#313131]">{service.name}</h3>
                       <div className="flex justify-between items-center mt-2">
                         <Badge variant="secondary" className="text-xs">
-                          {service.duration}
+                          {service.duration} min
                         </Badge>
-                        <span className="font-semibold text-[#FF96B2]">{service.price}</span>
+                        <span className="font-semibold text-[#FF96B2]">R$ {service.price}</span>
                       </div>
                     </div>
                   ))}
@@ -116,18 +152,18 @@ export default function BookingPage() {
                     <div
                       key={professional.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedProfessional === professional.name
+                        selectedProfessional?.id === professional.id
                           ? "border-[#FF96B2] bg-[#FF96B2]/10"
                           : "border-[#EFEFEF] hover:border-[#FF96B2]/50"
                       }`}
-                      onClick={() => setSelectedProfessional(professional.name)}
+                      onClick={() => setSelectedProfessional(professional)}
                     >
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="font-medium text-[#313131]">{professional.name}</h3>
                           <p className="text-sm text-[#313131]/70">{professional.specialty}</p>
                         </div>
-                        <Badge className="bg-[#FF96B2] text-white">⭐ {professional.rating}</Badge>
+                        <Badge className="bg-[#FF96B2] text-white">⭐ {professional.rating || "5.0"}</Badge>
                       </div>
                     </div>
                   ))}
@@ -204,14 +240,14 @@ export default function BookingPage() {
                 {selectedService && (
                   <div className="flex justify-between">
                     <span className="text-[#313131]/70">Serviço:</span>
-                    <span className="font-medium text-[#313131]">{selectedService}</span>
+                    <span className="font-medium text-[#313131]">{selectedService.name}</span>
                   </div>
                 )}
 
                 {selectedProfessional && (
                   <div className="flex justify-between">
                     <span className="text-[#313131]/70">Profissional:</span>
-                    <span className="font-medium text-[#313131]">{selectedProfessional}</span>
+                    <span className="font-medium text-[#313131]">{selectedProfessional.name}</span>
                   </div>
                 )}
 
@@ -233,7 +269,7 @@ export default function BookingPage() {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-[#313131]">Total:</span>
                     <span className="text-xl font-bold text-[#FF96B2]">
-                      {selectedService ? services.find((s) => s.name === selectedService)?.price : "R$ 0"}
+                      {selectedService ? `R$ ${selectedService.price}` : "R$ 0"}
                     </span>
                   </div>
                 </div>

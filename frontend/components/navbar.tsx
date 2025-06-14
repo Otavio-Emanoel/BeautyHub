@@ -8,6 +8,7 @@ import { useTheme } from "next-themes"
 import { useAuth } from "@/hooks/useAuth"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { Router } from "next/router"
 
 // Tipagem do usuário local com role
 interface LocalUser {
@@ -199,9 +200,9 @@ export function Navbar() {
                     localStorage.removeItem("user");
                     window.dispatchEvent(new Event("userChanged"));
                     setLocalUser(null);
-                  }
-                  }
-                  className={`w-full justify-start ${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
+                    window.location.href = "/auth/login"; 
+                  }}
+                  className={`${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
                 >
                   Sair
                 </Button>
