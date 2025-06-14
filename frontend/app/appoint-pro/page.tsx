@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,108 +42,138 @@ export default function ProfessionalAppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
   const [serviceFilter, setServiceFilter] = useState("all")
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [notes, setNotes] = useState("")
+  const [appointments, setAppointments] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [rescheduleData, setRescheduleData] = useState<{ id: string, date: string, time: string } | null>(null)
 
-  const appointments = [
-    {
-      id: 1,
-      client: {
-        name: "Maria Silva",
-        phone: "(11) 99999-9999",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isNewClient: false,
-      },
-      service: "Corte + Escova",
-      date: "2024-01-20",
-      time: "14:00",
-      duration: "90 min",
-      price: 140,
-      status: "confirmed",
-      location: "Salão Elegance - Centro",
-      notes: "Cliente prefere corte mais curto",
-      isToday: true,
-    },
-    {
-      id: 2,
-      client: {
-        name: "Ana Costa",
-        phone: "(11) 88888-8888",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isNewClient: true,
-      },
-      service: "Coloração + Luzes",
-      date: "2024-01-20",
-      time: "16:00",
-      duration: "180 min",
-      price: 280,
-      status: "pending",
-      location: "Salão Elegance - Centro",
-      notes: "",
-      isToday: true,
-    },
-    {
-      id: 3,
-      client: {
-        name: "Fernanda Oliveira",
-        phone: "(11) 77777-7777",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isNewClient: false,
-      },
-      service: "Corte Feminino",
-      date: "2024-01-21",
-      time: "10:00",
-      duration: "60 min",
-      price: 80,
-      status: "confirmed",
-      location: "Beauty Studio - Jardins",
-      notes: "",
-      isToday: false,
-    },
-    {
-      id: 4,
-      client: {
-        name: "Carla Santos",
-        phone: "(11) 66666-6666",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isNewClient: false,
-      },
-      service: "Escova",
-      date: "2024-01-19",
-      time: "15:30",
-      duration: "60 min",
-      price: 60,
-      status: "completed",
-      location: "Salão Elegance - Centro",
-      notes: "Cliente muito satisfeita",
-      isToday: false,
-    },
-    {
-      id: 5,
-      client: {
-        name: "Julia Mendes",
-        phone: "(11) 55555-5555",
-        avatar: "/placeholder.svg?height=40&width=40",
-        isNewClient: false,
-      },
-      service: "Corte + Escova",
-      date: "2024-01-18",
-      time: "11:00",
-      duration: "90 min",
-      price: 140,
-      status: "cancelled",
-      location: "Beauty Studio - Jardins",
-      notes: "Cancelado pela cliente",
-      isToday: false,
-    },
-  ]
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      setLoading(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/schedules`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setAppointments(data.appointments || [])
+      } catch (e) {
+        setAppointments([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAppointments()
+  }, [])
+
+  // Corrige o mapeamento dos dados vindos do backend
+  const getClientName = (appointment: any) => appointment.clientName || appointment.client?.name || "Cliente"
+  const getClientAvatar = (appointment: any) => appointment.clientAvatar || appointment.client?.avatar || "/placeholder.svg"
+  const getClientPhone = (appointment: any) => appointment.clientPhone || appointment.client?.phone || ""
+  const getServiceName = (appointment: any) => appointment.serviceName || appointment.service || ""
+  const getServiceDuration = (appointment: any) => appointment.serviceDuration || appointment.duration || ""
+  const getLocation = (appointment: any) => appointment.salonAddress || appointment.location || ""
+  const getPrice = (appointment: any) => appointment.servicePrice || appointment.price || ""
+  const getNotes = (appointment: any) => appointment.note || appointment.notes || ""
+  const getIsNewClient = (appointment: any) => appointment.clientIsNew || appointment.client?.isNewClient || false
+
+  const handleConfirm = async (appointmentId: string) => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "confirmed" }),
+      })
+      if (!res.ok) throw new Error("Erro ao confirmar agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "confirmed" } : a)
+      )
+    } catch (e) {
+      alert("Erro ao confirmar agendamento")
+    }
+  }
+
+  const handleCancel = async (appointmentId: string) => {
+    const token = localStorage.getItem("token")
+    if (!window.confirm("Deseja cancelar este agendamento?")) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao cancelar agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "cancelled" } : a)
+      )
+    } catch (e) {
+      alert("Erro ao cancelar agendamento")
+    }
+  }
+
+  const handleReschedule = async (appointmentId: string, newDate: string, newTime: string) => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "rescheduled", newDate, newTime }),
+      })
+      if (!res.ok) throw new Error("Erro ao remarcar agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, date: newDate, time: newTime, status: "rescheduled" } : a)
+      )
+    } catch (e) {
+      alert("Erro ao remarcar agendamento")
+    }
+  }
+
+  const handleAddNotes = async (appointmentId: string, notes: string) => {
+    const token = localStorage.getItem("token")
+    try {
+      // Não existe endpoint PATCH /notes, então atualize o status com o campo note
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ note: notes }),
+      })
+      if (!res.ok) throw new Error("Erro ao salvar observações")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, note: notes } : a)
+      )
+    } catch (e) {
+      alert("Erro ao salvar observações")
+    }
+  }
 
   const stats = {
-    thisWeek: 12,
-    thisMonth: 45,
-    attendanceRate: 92,
-    todayAppointments: 3,
-    newAppointments: 2,
+    thisWeek: appointments.filter(a => {
+      const d = new Date(a.date)
+      const now = new Date()
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      return d >= now && d <= weekFromNow
+    }).length,
+    thisMonth: appointments.filter(a => {
+      const d = new Date(a.date)
+      const now = new Date()
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }).length,
+    attendanceRate: 92, // Exemplo fixo
+    todayAppointments: appointments.filter(a => {
+      const d = new Date(a.date)
+      const now = new Date()
+      return d.toDateString() === now.toDateString()
+    }).length,
+    newAppointments: appointments.filter(a => getIsNewClient(a) && a.status === "pending").length,
   }
 
   const getStatusBadge = (status: string) => {
@@ -156,47 +186,44 @@ export default function ProfessionalAppointmentsPage() {
         return <Badge className="bg-blue-100 text-blue-800">Concluído</Badge>
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800">Cancelado</Badge>
+      case "rescheduled":
+        return <Badge className="bg-purple-100 text-purple-800">Reagendado</Badge>
       default:
         return <Badge className="bg-gray-100 text-gray-800">Pendente</Badge>
     }
   }
 
+  // Filtros
   const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch = appointment.client.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = getClientName(appointment).toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || appointment.status === statusFilter
-    const matchesService = serviceFilter === "all" || appointment.service.includes(serviceFilter)
+    const matchesService = serviceFilter === "all" || getServiceName(appointment).includes(serviceFilter)
 
     let matchesDate = true
     if (dateFilter === "today") {
-      matchesDate = appointment.isToday
+      const d = new Date(appointment.date)
+      const now = new Date()
+      matchesDate = d.toDateString() === now.toDateString()
     } else if (dateFilter === "week") {
-      const appointmentDate = new Date(appointment.date)
-      const today = new Date()
-      const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-      matchesDate = appointmentDate >= today && appointmentDate <= weekFromNow
+      const d = new Date(appointment.date)
+      const now = new Date()
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      matchesDate = d >= now && d <= weekFromNow
+    } else if (dateFilter === "month") {
+      const d = new Date(appointment.date)
+      const now = new Date()
+      matchesDate = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     }
 
     return matchesSearch && matchesStatus && matchesService && matchesDate
   })
 
-  const todayAppointments = appointments.filter((app) => app.isToday)
-  const newAppointments = appointments.filter((app) => app.client.isNewClient && app.status === "pending")
-
-  const handleConfirm = (appointmentId: number) => {
-    console.log("Confirming appointment:", appointmentId)
-  }
-
-  const handleCancel = (appointmentId: number) => {
-    console.log("Cancelling appointment:", appointmentId)
-  }
-
-  const handleReschedule = (appointmentId: number) => {
-    console.log("Rescheduling appointment:", appointmentId)
-  }
-
-  const handleAddNotes = (appointmentId: number, notes: string) => {
-    console.log("Adding notes to appointment:", appointmentId, notes)
-  }
+  const todayAppointments = appointments.filter((a) => {
+    const d = new Date(a.date)
+    const now = new Date()
+    return d.toDateString() === now.toDateString()
+  })
+  const newAppointments = appointments.filter((a) => getIsNewClient(a) && a.status === "pending")
 
   const handleWhatsApp = (phone: string, clientName: string) => {
     const message = `Olá ${clientName}! Aqui é da BeautyBook. Como posso ajudá-la?`
@@ -225,7 +252,6 @@ export default function ProfessionalAppointmentsPage() {
               <p className="text-xs text-[#313131]/70 dark:text-white/60">agendamentos</p>
             </CardContent>
           </Card>
-
           <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/60">Esta Semana</CardTitle>
@@ -236,7 +262,6 @@ export default function ProfessionalAppointmentsPage() {
               <p className="text-xs text-[#313131]/70 dark:text-white/60">agendamentos</p>
             </CardContent>
           </Card>
-
           <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/60">Este Mês</CardTitle>
@@ -247,7 +272,6 @@ export default function ProfessionalAppointmentsPage() {
               <p className="text-xs text-[#313131]/70 dark:text-white/60">agendamentos</p>
             </CardContent>
           </Card>
-
           <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/60">Taxa Comparecimento</CardTitle>
@@ -258,7 +282,6 @@ export default function ProfessionalAppointmentsPage() {
               <p className="text-xs text-[#313131]/70 dark:text-white/60">este mês</p>
             </CardContent>
           </Card>
-
           <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#313131]/70 dark:text-white/60">Novos</CardTitle>
@@ -286,7 +309,6 @@ export default function ProfessionalAppointmentsPage() {
                 </CardContent>
               </Card>
             )}
-
             {newAppointments.length > 0 && (
               <Card className="border-l-4 border-l-yellow-500 dark:border-l-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
                 <CardContent className="pt-4">
@@ -316,7 +338,6 @@ export default function ProfessionalAppointmentsPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FFB6D5] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
                   <SelectValue placeholder="Status" />
@@ -327,9 +348,9 @@ export default function ProfessionalAppointmentsPage() {
                   <SelectItem value="confirmed">Confirmado</SelectItem>
                   <SelectItem value="completed">Concluído</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
+                  <SelectItem value="rescheduled">Reagendado</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FFB6D5] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
                   <SelectValue placeholder="Data" />
@@ -341,19 +362,20 @@ export default function ProfessionalAppointmentsPage() {
                   <SelectItem value="month">Este mês</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={serviceFilter} onValueChange={setServiceFilter}>
                 <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FFB6D5] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
                   <SelectValue placeholder="Serviço" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
                   <SelectItem value="all">Todos os serviços</SelectItem>
-                  <SelectItem value="Corte">Corte</SelectItem>
-                  <SelectItem value="Escova">Escova</SelectItem>
-                  <SelectItem value="Coloração">Coloração</SelectItem>
+                  {/* Opcional: gere dinamicamente as opções de serviço */}
+                  {[...new Set(appointments.map(getServiceName))]
+                    .filter(Boolean)
+                    .map((service, idx) => (
+                      <SelectItem key={idx} value={service}>{service}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
-
               <Button
                 variant="outline"
                 className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
@@ -380,22 +402,22 @@ export default function ProfessionalAppointmentsPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={appointment.client.avatar || "/placeholder.svg"} />
+                        <AvatarImage src={getClientAvatar(appointment)} />
                         <AvatarFallback className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white">
-                          {appointment.client.name
+                          {getClientName(appointment)
                             .split(" ")
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-[#313131] dark:text-white">{appointment.client.name}</h3>
-                          {appointment.client.isNewClient && (
+                          <h3 className="font-semibold text-[#313131] dark:text-white">{getClientName(appointment)}</h3>
+                          {getIsNewClient(appointment) && (
                             <Badge className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white text-xs">Novo</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-[#313131]/70 dark:text-white/60">{appointment.service}</p>
+                        <p className="text-sm text-[#313131]/70 dark:text-white/60">{getServiceName(appointment)}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -415,7 +437,7 @@ export default function ProfessionalAppointmentsPage() {
                           )}
                           {(appointment.status === "pending" || appointment.status === "confirmed") && (
                             <>
-                              <DropdownMenuItem onClick={() => handleReschedule(appointment.id)}>
+                              <DropdownMenuItem onClick={() => setRescheduleData({ id: appointment.id, date: appointment.date, time: appointment.time })}>
                                 <RotateCcw className="w-4 h-4 mr-2" />
                                 Reagendar
                               </DropdownMenuItem>
@@ -437,22 +459,22 @@ export default function ProfessionalAppointmentsPage() {
                     </div>
                     <div className="flex items-center text-[#313131]/70 dark:text-white/60">
                       <Clock className="w-4 h-4 mr-2" />
-                      {appointment.time} • {appointment.duration}
+                      {appointment.time} • {getServiceDuration(appointment)} min
                     </div>
                     <div className="flex items-center text-[#313131]/70 dark:text-white/60">
                       <MapPin className="w-4 h-4 mr-2" />
-                      {appointment.location}
+                      {getLocation(appointment)}
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-[#FF96B2] dark:text-[#FFB6D5]">R$ {appointment.price}</span>
+                      <span className="text-lg font-bold text-[#FF96B2] dark:text-[#FFB6D5]">R$ {getPrice(appointment)}</span>
                     </div>
                   </div>
 
-                  {appointment.notes && (
+                  {getNotes(appointment) && (
                     <div className="mb-4 p-3 bg-[#EFEFEF] dark:bg-[#232326] rounded-lg">
                       <p className="text-sm text-[#313131]/70 dark:text-white/60">
                         <FileText className="w-4 h-4 inline mr-1" />
-                        {appointment.notes}
+                        {getNotes(appointment)}
                       </p>
                     </div>
                   )}
@@ -462,21 +484,20 @@ export default function ProfessionalAppointmentsPage() {
                       size="sm"
                       variant="outline"
                       className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900"
-                      onClick={() => handleWhatsApp(appointment.client.phone, appointment.client.name)}
+                      onClick={() => handleWhatsApp(getClientPhone(appointment), getClientName(appointment))}
                     >
                       <MessageSquare className="w-4 h-4 mr-2" />
                       WhatsApp
                     </Button>
-
                     <Button
                       size="sm"
                       variant="outline"
                       className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
+                      onClick={() => window.open(`tel:${getClientPhone(appointment)}`)}
                     >
                       <Phone className="w-4 h-4 mr-2" />
                       Ligar
                     </Button>
-
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -492,7 +513,7 @@ export default function ProfessionalAppointmentsPage() {
                         <DialogHeader>
                           <DialogTitle className="text-[#313131] dark:text-white">Adicionar Observações</DialogTitle>
                           <DialogDescription className="dark:text-white/60">
-                            Adicione observações sobre o atendimento de {appointment.client.name}
+                            Adicione observações sobre o atendimento de {getClientName(appointment)}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -518,7 +539,6 @@ export default function ProfessionalAppointmentsPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
-
                     {appointment.status === "pending" && (
                       <Button
                         size="sm"
@@ -554,6 +574,49 @@ export default function ProfessionalAppointmentsPage() {
             </Card>
           )}
         </div>
+
+        {/* Modal de reagendamento */}
+        <Dialog open={!!rescheduleData} onOpenChange={(open) => !open && setRescheduleData(null)}>
+          <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+            <DialogHeader>
+              <DialogTitle className="text-[#313131] dark:text-white">Reagendar Agendamento</DialogTitle>
+              <DialogDescription className="dark:text-white/60">
+                Escolha a nova data e horário para o agendamento.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="newDate" className="dark:text-white">Nova Data</Label>
+                <Input
+                  id="newDate"
+                  type="date"
+                  value={rescheduleData?.date || ""}
+                  onChange={(e) => setRescheduleData((prev) => prev ? { ...prev, date: e.target.value } : null)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="newTime" className="dark:text-white">Novo Horário</Label>
+                <Input
+                  id="newTime"
+                  type="time"
+                  value={rescheduleData?.time || ""}
+                  onChange={(e) => setRescheduleData((prev) => prev ? { ...prev, time: e.target.value } : null)}
+                />
+              </div>
+              <Button
+                className="w-full bg-[#FF96B2] dark:bg-[#FFB6D5] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FFB6D5]/90 text-white dark:text-[#232326]"
+                onClick={() => {
+                  if (rescheduleData) {
+                    handleReschedule(rescheduleData.id, rescheduleData.date, rescheduleData.time)
+                    setRescheduleData(null)
+                  }
+                }}
+              >
+                Salvar Reagendamento
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
