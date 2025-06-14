@@ -17,61 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 
 
-export default function ProfessionalProfilePage() {
-  const [profileData, setProfileData] = useState<any>({
-    name: "",
-    email: "",
-    phone: "",
-    experience: "",
-    location: "",
-    instagram: "",
-    bio: "",
-    avatar: "",
-  })
-  const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
+function CertificationSection() {
 
-  const [services, setServices] = useState<any[]>([])
-  const [loadingServices, setLoadingServices] = useState(true)
-
-
-  /* Só pra funcionar as outras abas por enquanto */
-  const [portfolio] = useState([
-    {
-      id: "1",
-      image: "/placeholder.svg",
-      title: "Corte Long Bob",
-      description: "Transformação com corte moderno.",
-      category: "Cabelo",
-    },
-    {
-      id: "2",
-      image: "/placeholder.svg",
-      title: "Unhas Decoradas",
-      description: "Tendência verão 2025.",
-      category: "Unhas",
-    },
-    {
-      id: "3",
-      image: "/placeholder.svg",
-      title: "Coloração Platinada",
-      description: "Platinado perfeito sem danificar os fios.",
-      category: "Cabelo",
-    },
-  ])
-
-  const [newService, setNewService] = useState({
-    name: "",
-    category: "",
-    duration: 60,
-    price: 0,
-    description: "",
-  })
-
-
-  // adicionar certificação
   const [certifications, setCertifications] = useState<any[]>([])
   const [loadingCerts, setLoadingCerts] = useState(true)
   const [newCertification, setNewCertification] = useState({
@@ -137,6 +84,412 @@ export default function ProfessionalProfilePage() {
       alert("Erro ao excluir certificação")
     }
   }
+
+  return (
+    <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-[#313131] dark:text-white">Formações & Certificações</CardTitle>
+                      <CardDescription className="dark:text-white/70">Adicione suas certificações e cursos</CardDescription>
+                    </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Nova Certificação
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
+                        <DialogHeader>
+                          <DialogTitle className="text-[#313131] dark:text-white">Adicionar Certificação</DialogTitle>
+                          <DialogDescription className="dark:text-white/70">Preencha os dados da certificação</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="certName" className="dark:text-white">Nome</Label>
+                            <Input
+                              id="certName"
+                              value={newCertification.name}
+                              onChange={(e) => setNewCertification({ ...newCertification, name: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="certInstitution" className="dark:text-white">Instituição</Label>
+                            <Input
+                              id="certInstitution"
+                              value={newCertification.institution}
+                              onChange={(e) => setNewCertification({ ...newCertification, institution: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="certYear" className="dark:text-white">Ano</Label>
+                            <Input
+                              id="certYear"
+                              type="number"
+                              value={newCertification.year}
+                              onChange={(e) => setNewCertification({ ...newCertification, year: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="certDoc" className="dark:text-white">Documento (link ou nome do arquivo)</Label>
+                            <Input
+                              id="certDoc"
+                              value={newCertification.document}
+                              onChange={(e) => setNewCertification({ ...newCertification, document: e.target.value })}
+                            />
+                          </div>
+                          <Button
+                            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
+                            onClick={handleAddCertification}
+                            disabled={adding}
+                          >
+                            Adicionar Certificação
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {loadingCerts ? (
+                    <div className="text-center py-8">Carregando...</div>
+                  ) : certifications.length === 0 ? (
+                    <div className="text-center py-8 text-[#313131]/70 dark:text-white/70">Nenhuma certificação cadastrada.</div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {certifications.map((cert) => (
+                        <Card key={cert.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
+                          <CardHeader className="pb-3 flex flex-row justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg text-[#313131] dark:text-white">{cert.name}</CardTitle>
+                              <div className="text-sm text-[#313131]/70 dark:text-white/70">{cert.institution} • {cert.year}</div>
+                              {cert.document && (
+                                <div className="mt-1">
+                                  <a href={cert.document} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FF96B2] underline break-all">
+                                    {cert.document}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="text-red-600">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="dark:text-white text-lg">Excluir certificação</AlertDialogTitle>
+                                  <AlertDialogDescription className="dark:text-white/70">
+                                    Tem certeza que deseja excluir esta certificação? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                    onClick={() => handleDeleteCertification(cert.id)}
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+  )
+}
+
+function PortfolioSection() {
+  const [portfolio, setPortfolio] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newItem, setNewItem] = useState({ title: "", description: "", image: "" })
+  const [editingItem, setEditingItem] = useState<any | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      setLoading(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/portfolio`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setPortfolio(data.portfolio || [])
+      } catch (e) {
+        setPortfolio([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPortfolio()
+  }, [])
+
+  const handleAdd = async () => {
+    setSaving(true)
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/portfolio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newItem),
+      })
+      if (!res.ok) throw new Error("Erro ao adicionar item")
+      const data = await res.json()
+      setPortfolio((prev) => [...prev, { ...newItem, id: data.id }])
+      setNewItem({ title: "", description: "", image: "" })
+    } catch (e) {
+      alert("Erro ao adicionar item")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEdit = async () => {
+    if (!editingItem) return
+    setSaving(true)
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/portfolio/${editingItem.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editingItem),
+      })
+      if (!res.ok) throw new Error("Erro ao editar item")
+      setPortfolio((prev) =>
+        prev.map((item) => (item.id === editingItem.id ? editingItem : item))
+      )
+      setEditingItem(null)
+    } catch (e) {
+      alert("Erro ao editar item")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/portfolio/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao excluir item")
+      setPortfolio((prev) => prev.filter((item) => item.id !== id))
+    } catch (e) {
+      alert("Erro ao excluir item")
+    }
+  }
+
+  return (
+    <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-[#313131] dark:text-white">Portfólio</CardTitle>
+            <CardDescription className="dark:text-white/70">Adicione fotos dos seus melhores trabalhos</CardDescription>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Foto
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
+              <DialogHeader>
+                <DialogTitle className="text-[#313131] dark:text-white">Adicionar ao Portfólio</DialogTitle>
+                <DialogDescription className="dark:text-white/70">Insira o link da imagem, título e descrição</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Título</label>
+                  <Input
+                    placeholder="Ex: Corte feminino moderno"
+                    value={newItem.title}
+                    onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Descrição</label>
+                  <Textarea
+                    placeholder="Descreva o serviço ou resultado da foto"
+                    value={newItem.description}
+                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Link da imagem</label>
+                  <Input
+                    placeholder="https://exemplo.com/sua-imagem.jpg"
+                    value={newItem.image}
+                    onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
+                  />
+                </div>
+                <Button
+                  className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
+                  onClick={handleAdd}
+                  disabled={saving}
+                >
+                  Adicionar
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="text-center py-8">Carregando...</div>
+        ) : portfolio.length === 0 ? (
+          <div className="text-center py-8 text-[#313131]/70 dark:text-white/70">Nenhuma foto cadastrada.</div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {portfolio.map((item) => (
+              <Card key={item.id} className="border border-[#EFEFEF] dark:border-[#232326] overflow-hidden bg-white dark:bg-[#18181b]">
+                <div className="relative">
+                  <img
+                    src={item.image || "/placeholder.svg"}
+                    alt={item.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-2 right-2 flex space-x-1">
+                    {/* Editar */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="ghost" className="bg-white/80 dark:bg-[#232326]/80 hover:bg-white dark:hover:bg-[#232326]">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
+                        <DialogHeader>
+                          <DialogTitle className="text-[#313131] dark:text-white">Editar Foto</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-white">Título</label>
+                            <Input
+                              placeholder="Ex: Corte feminino moderno"
+                              value={editingItem?.id === item.id ? editingItem.title : item.title}
+                              onChange={(e) =>
+                                setEditingItem({ ...item, title: e.target.value, description: editingItem?.description ?? item.description, image: editingItem?.image ?? item.image, id: item.id })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-white">Descrição</label>
+                            <Textarea
+                              placeholder="Descreva o serviço ou resultado da foto"
+                              value={editingItem?.id === item.id ? editingItem.description : item.description}
+                              onChange={(e) =>
+                                setEditingItem({ ...item, title: editingItem?.title ?? item.title, description: e.target.value, image: editingItem?.image ?? item.image, id: item.id })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-white">Link da imagem</label>
+                            <Input
+                              placeholder="https://exemplo.com/sua-imagem.jpg"
+                              value={editingItem?.id === item.id ? editingItem.image : item.image}
+                              onChange={(e) =>
+                                setEditingItem({ ...item, title: editingItem?.title ?? item.title, description: editingItem?.description ?? item.description, image: e.target.value, id: item.id })
+                              }
+                            />
+                          </div>
+                          <Button
+                            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
+                            onClick={handleEdit}
+                            disabled={saving}
+                          >
+                            Salvar Alterações
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    {/* Excluir */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="ghost" className="bg-white/80 dark:bg-[#232326]/80 hover:bg-white dark:hover:bg-[#232326] text-red-600">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="dark:text-white text-lg">Excluir foto</AlertDialogTitle>
+                          <AlertDialogDescription className="dark:text-white/70">
+                            Tem certeza que deseja excluir esta foto? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                <CardContent className="pt-4">
+                  <h3 className="font-semibold text-[#313131] dark:text-white mb-1">{item.title}</h3>
+                  <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-2">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+
+export default function ProfessionalProfilePage() {
+  const [profileData, setProfileData] = useState<any>({
+    name: "",
+    email: "",
+    phone: "",
+    experience: "",
+    location: "",
+    instagram: "",
+    bio: "",
+    avatar: "",
+  })
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
+
+  const [services, setServices] = useState<any[]>([])
+  const [loadingServices, setLoadingServices] = useState(true)
+
+  const [newService, setNewService] = useState({
+    name: "",
+    category: "",
+    duration: 60,
+    price: 0,
+    description: "",
+  })
+
+
+
+  
 
   /* Chega já */
 
@@ -290,6 +643,7 @@ export default function ProfessionalProfilePage() {
       alert("Erro ao excluir serviço")
     }
   }
+
 
   if (loading) return <div>Carregando...</div>
   if (error) return <div className="text-red-500">{error}</div>
@@ -639,170 +993,13 @@ export default function ProfessionalProfilePage() {
           {/* Certifications Tab */}
           <TabsContent value="certifications">
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle className="text-[#313131] dark:text-white">Formações & Certificações</CardTitle>
-                      <CardDescription className="dark:text-white/70">Adicione suas certificações e cursos</CardDescription>
-                    </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Nova Certificação
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
-                        <DialogHeader>
-                          <DialogTitle className="text-[#313131] dark:text-white">Adicionar Certificação</DialogTitle>
-                          <DialogDescription className="dark:text-white/70">Preencha os dados da certificação</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="certName" className="dark:text-white">Nome</Label>
-                            <Input
-                              id="certName"
-                              value={newCertification.name}
-                              onChange={(e) => setNewCertification({ ...newCertification, name: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="certInstitution" className="dark:text-white">Instituição</Label>
-                            <Input
-                              id="certInstitution"
-                              value={newCertification.institution}
-                              onChange={(e) => setNewCertification({ ...newCertification, institution: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="certYear" className="dark:text-white">Ano</Label>
-                            <Input
-                              id="certYear"
-                              type="number"
-                              value={newCertification.year}
-                              onChange={(e) => setNewCertification({ ...newCertification, year: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="certDoc" className="dark:text-white">Documento (link ou nome do arquivo)</Label>
-                            <Input
-                              id="certDoc"
-                              value={newCertification.document}
-                              onChange={(e) => setNewCertification({ ...newCertification, document: e.target.value })}
-                            />
-                          </div>
-                          <Button
-                            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
-                            onClick={handleAddCertification}
-                            disabled={adding}
-                          >
-                            Adicionar Certificação
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {loadingCerts ? (
-                    <div className="text-center py-8">Carregando...</div>
-                  ) : certifications.length === 0 ? (
-                    <div className="text-center py-8 text-[#313131]/70 dark:text-white/70">Nenhuma certificação cadastrada.</div>
-                  ) : (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {certifications.map((cert) => (
-                        <Card key={cert.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
-                          <CardHeader className="pb-3 flex flex-row justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg text-[#313131] dark:text-white">{cert.name}</CardTitle>
-                              <div className="text-sm text-[#313131]/70 dark:text-white/70">{cert.institution} • {cert.year}</div>
-                              {cert.document && (
-                                <div className="mt-1">
-                                  <a href={cert.document} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FF96B2] underline break-all">
-                                    {cert.document}
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="ghost" className="text-red-600">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="dark:text-white text-lg">Excluir certificação</AlertDialogTitle>
-                                  <AlertDialogDescription className="dark:text-white/70">
-                                    Tem certeza que deseja excluir esta certificação? Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                    onClick={() => handleDeleteCertification(cert.id)}
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </CardHeader>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <CertificationSection />
             </div>
           </TabsContent>
 
           {/* Portfolio Tab */}
           <TabsContent value="portfolio">
-            <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-[#313131] dark:text-white">Portfólio</CardTitle>
-                    <CardDescription className="dark:text-white/70">Mostre seus melhores trabalhos</CardDescription>
-                  </div>
-                  <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Foto
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {portfolio.map((item) => (
-                    <Card key={item.id} className="border border-[#EFEFEF] dark:border-[#232326] overflow-hidden bg-white dark:bg-[#18181b]">
-                      <div className="relative">
-                        <img
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.title}
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-2 right-2 flex space-x-1">
-                          <Button size="sm" variant="ghost" className="bg-white/80 dark:bg-[#232326]/80 hover:bg-white dark:hover:bg-[#232326]">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="bg-white/80 dark:bg-[#232326]/80 hover:bg-white dark:hover:bg-[#232326] text-red-600">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <CardContent className="pt-4">
-                        <h3 className="font-semibold text-[#313131] dark:text-white mb-1">{item.title}</h3>
-                        <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-2">{item.description}</p>
-                        <Badge className="bg-[#FF96B2]/10 dark:bg-[#FF5C8A]/10 text-[#FF96B2] dark:text-[#FF5C8A]">{item.category}</Badge>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+              <PortfolioSection />
           </TabsContent>
 
           {/* Preview Tab */}
@@ -869,7 +1066,7 @@ export default function ProfessionalProfilePage() {
                   <div>
                     <h3 className="text-xl font-semibold text-[#313131] dark:text-white mb-4">Portfólio</h3>
                     <div className="grid grid-cols-3 gap-4">
-                      {portfolio.slice(0, 6).map((item) => (
+                      {/* {portfolio.slice(0, 6).map((item) => (
                         <div key={item.id} className="aspect-square">
                           <img
                             src={item.image || "/placeholder.svg"}
@@ -877,7 +1074,7 @@ export default function ProfessionalProfilePage() {
                             className="w-full h-full object-cover rounded-lg"
                           />
                         </div>
-                      ))}
+                      ))} */}
                     </div>
                   </div>
                 </div>
