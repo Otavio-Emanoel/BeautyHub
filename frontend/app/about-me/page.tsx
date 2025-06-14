@@ -38,26 +38,6 @@ export default function ProfessionalProfilePage() {
 
 
   /* Só pra funcionar as outras abas por enquanto */
-
-
-  const [certifications] = useState([
-    {
-      id: "1",
-      name: "Colorimetria Avançada",
-      institution: "Instituto Beleza Pro",
-      year: "2022",
-      verified: true,
-      document: "colorimetria.pdf",
-    },
-    {
-      id: "2",
-      name: "Design de Sobrancelhas",
-      institution: "Senac",
-      year: "2021",
-      verified: false,
-      document: "",
-    },
-  ])
   const [portfolio] = useState([
     {
       id: "1",
@@ -91,26 +71,71 @@ export default function ProfessionalProfilePage() {
   })
 
 
-  // MOCK para adicionar certificação
+  // adicionar certificação
+  const [certifications, setCertifications] = useState<any[]>([])
+  const [loadingCerts, setLoadingCerts] = useState(true)
   const [newCertification, setNewCertification] = useState({
     name: "",
     institution: "",
     year: "",
     document: "",
   })
-  const handleAddCertification = () => {
-    setNewCertification({
-      name: "",
-      institution: "",
-      year: "",
-      document: "",
-    })
+  const [adding, setAdding] = useState(false)
+
+  useEffect(() => {
+    const fetchCertifications = async () => {
+      setLoadingCerts(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/certifications`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setCertifications(data.certifications || [])
+      } catch (e) {
+        setCertifications([])
+      } finally {
+        setLoadingCerts(false)
+      }
+    }
+    fetchCertifications()
+  }, [])
+
+  const handleAddCertification = async () => {
+    setAdding(true)
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/certifications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newCertification),
+      })
+      if (!res.ok) throw new Error("Erro ao adicionar certificação")
+      const data = await res.json()
+      setCertifications((prev) => [...prev, { ...newCertification, id: data.id }])
+      setNewCertification({ name: "", institution: "", year: "", document: "" })
+    } catch (e) {
+      alert("Erro ao adicionar certificação")
+    } finally {
+      setAdding(false)
+    }
   }
-  const handleDeleteCertification = (id: string) => {
-    // Não faz nada, só para não dar erro
-  }
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    // Não faz nada, só para não dar erro
+
+  const handleDeleteCertification = async (id: string) => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/certifications/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao excluir certificação")
+      setCertifications((prev) => prev.filter((c) => c.id !== id))
+    } catch (e) {
+      alert("Erro ao excluir certificação")
+    }
   }
 
   /* Chega já */
@@ -618,8 +643,8 @@ export default function ProfessionalProfilePage() {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle className="text-[#313131] dark:text-white">Formações e Certificações</CardTitle>
-                      <CardDescription className="dark:text-white/70">Adicione seus diplomas e certificados</CardDescription>
+                      <CardTitle className="text-[#313131] dark:text-white">Formações & Certificações</CardTitle>
+                      <CardDescription className="dark:text-white/70">Adicione suas certificações e cursos</CardDescription>
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
@@ -628,17 +653,16 @@ export default function ProfessionalProfilePage() {
                           Nova Certificação
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white dark:bg-[#232326]">
+                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
                         <DialogHeader>
                           <DialogTitle className="text-[#313131] dark:text-white">Adicionar Certificação</DialogTitle>
-                          <DialogDescription className="dark:text-white/70">Preencha as informações da certificação</DialogDescription>
+                          <DialogDescription className="dark:text-white/70">Preencha os dados da certificação</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="certName" className="dark:text-white">Nome do curso/certificação</Label>
+                            <Label htmlFor="certName" className="dark:text-white">Nome</Label>
                             <Input
                               id="certName"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
                               value={newCertification.name}
                               onChange={(e) => setNewCertification({ ...newCertification, name: e.target.value })}
                             />
@@ -647,35 +671,31 @@ export default function ProfessionalProfilePage() {
                             <Label htmlFor="certInstitution" className="dark:text-white">Instituição</Label>
                             <Input
                               id="certInstitution"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
                               value={newCertification.institution}
-                              onChange={(e) =>
-                                setNewCertification({ ...newCertification, institution: e.target.value })
-                              }
+                              onChange={(e) => setNewCertification({ ...newCertification, institution: e.target.value })}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="certYear" className="dark:text-white">Ano de conclusão</Label>
+                            <Label htmlFor="certYear" className="dark:text-white">Ano</Label>
                             <Input
                               id="certYear"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                              type="number"
                               value={newCertification.year}
                               onChange={(e) => setNewCertification({ ...newCertification, year: e.target.value })}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="certDocument" className="dark:text-white">Documento (PDF)</Label>
+                            <Label htmlFor="certDoc" className="dark:text-white">Documento (link ou nome do arquivo)</Label>
                             <Input
-                              id="certDocument"
-                              type="file"
-                              accept=".pdf"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                              onChange={(e) => handleFileUpload(e, "certification")}
+                              id="certDoc"
+                              value={newCertification.document}
+                              onChange={(e) => setNewCertification({ ...newCertification, document: e.target.value })}
                             />
                           </div>
                           <Button
                             className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
                             onClick={handleAddCertification}
+                            disabled={adding}
                           >
                             Adicionar Certificação
                           </Button>
@@ -685,66 +705,55 @@ export default function ProfessionalProfilePage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {certifications.map((cert) => (
-                      <Card key={cert.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <h3 className="font-semibold text-[#313131] dark:text-white">{cert.name}</h3>
-                                {cert.verified ? (
-                                  <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                    <Award className="w-3 h-3 mr-1" />
-                                    Verificado
-                                  </Badge>
-                                ) : (
-                                  <Badge className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Pendente</Badge>
-                                )}
-                              </div>
-                              <p className="text-[#313131]/70 dark:text-white/70">{cert.institution}</p>
-                              <p className="text-sm text-[#313131]/50 dark:text-white/50">Ano: {cert.year}</p>
+                  {loadingCerts ? (
+                    <div className="text-center py-8">Carregando...</div>
+                  ) : certifications.length === 0 ? (
+                    <div className="text-center py-8 text-[#313131]/70 dark:text-white/70">Nenhuma certificação cadastrada.</div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {certifications.map((cert) => (
+                        <Card key={cert.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
+                          <CardHeader className="pb-3 flex flex-row justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg text-[#313131] dark:text-white">{cert.name}</CardTitle>
+                              <div className="text-sm text-[#313131]/70 dark:text-white/70">{cert.institution} • {cert.year}</div>
                               {cert.document && (
-                                <div className="flex items-center mt-2 text-sm text-[#FF96B2] dark:text-[#FF5C8A]">
-                                  <FileText className="w-4 h-4 mr-1" />
-                                  {cert.document}
+                                <div className="mt-1">
+                                  <a href={cert.document} target="_blank" rel="noopener noreferrer" className="text-xs text-[#FF96B2] underline break-all">
+                                    {cert.document}
+                                  </a>
                                 </div>
                               )}
                             </div>
-                            <div className="flex space-x-1">
-                              <Button size="sm" variant="ghost">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" className="text-red-600">
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-white dark:bg-[#232326]">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle className="dark:text-white">Excluir certificação</AlertDialogTitle>
-                                    <AlertDialogDescription className="dark:text-white/70">
-                                      Tem certeza que deseja excluir esta certificação?
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      className="bg-red-600 hover:bg-red-700"
-                                      onClick={() => handleDeleteCertification(cert.id)}
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="text-red-600">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="dark:text-white text-lg">Excluir certificação</AlertDialogTitle>
+                                  <AlertDialogDescription className="dark:text-white/70">
+                                    Tem certeza que deseja excluir esta certificação? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                    onClick={() => handleDeleteCertification(cert.id)}
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
