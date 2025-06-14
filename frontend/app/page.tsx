@@ -44,7 +44,7 @@ export default function HomePage() {
                       Ir para o Perfil
                     </Button>
                   </Link>
-                  <Link href="/explorar">
+                  <Link href="/salons">
                     <Button
                       size="lg"
                       variant="outline"

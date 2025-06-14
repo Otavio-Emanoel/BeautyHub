@@ -2,24 +2,55 @@ import { Request, Response } from 'express';
 import admin from '../config/firebase';
 
 export async function createAppointment(req: Request, res: Response ) {
-    const { salonId, professionalId, date, time, note } = req.body;
+    const { salonId, professionalId, serviceId, date, time, note } = req.body;
     const clientId = req.users?.uid;
     
-    if (!salonId || !professionalId || !date || !time) {
+    if (!salonId || !professionalId || !serviceId || !date || !time) {
         return res.status(400).json({ error: "Todos os campos são obrigatórios" });
     }
 
     try {
-        const appointmentRef = await admin.firestore().collection('appointments').add({
+        // Busca dados do serviço
+        const serviceDoc = await admin.firestore().collection('services').doc(serviceId).get();
+        if (!serviceDoc.exists) return res.status(404).json({ error: "Serviço não encontrado" });
+        const service = serviceDoc.data();
+
+        // Busca dados do salão
+        const salonDoc = await admin.firestore().collection('salons').doc(salonId).get();
+        if (!salonDoc.exists) return res.status(404).json({ error: "Salão não encontrado" });
+        const salon = salonDoc.data();
+
+        // Busca dados do profissional
+        const professionalDoc = await admin.firestore().collection('professionals').doc(professionalId).get();
+        if (!professionalDoc.exists) return res.status(404).json({ error: "Profissional não encontrado" });
+        const professional = professionalDoc.data();
+
+        // Busca dados do cliente (opcional, para salvar nome do cliente)
+        // const clientDoc = await admin.firestore().collection('users').doc(clientId).get();
+        // const client = clientDoc.exists ? clientDoc.data() : {};
+
+        const appointmentData = {
             salonId,
+            salonName: salon?.name || "",
+            salonAddress: salon?.address || "",
+            salonPhone: salon?.phone || "",
             professionalId,
+            professionalName: professional?.name || "",
+            professionalAvatar: professional?.avatar || "",
+            serviceId,
+            serviceName: service?.name || "",
+            servicePrice: service?.price || 0,
+            serviceDuration: service?.duration || "",
             clientId,
+            // clientName: client?.name || "",
             date,
             time,
             note,
             status: 'pending',
             createdAt: new Date().toISOString()
-        });
+        };
+
+        const appointmentRef = await admin.firestore().collection('appointments').add(appointmentData);
 
         res.status(201).json({ message: "Agendamento criado com sucesso", appointmentId: appointmentRef.id });
     } catch (error: any) {

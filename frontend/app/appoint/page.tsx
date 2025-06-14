@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,110 +24,63 @@ export default function AppointmentsPage() {
   const [selectedRating, setSelectedRating] = useState(0)
   const [reviewText, setReviewText] = useState("")
   const [filterPeriod, setFilterPeriod] = useState("all")
+  const [loading, setLoading] = useState(true)
+  const [appointments, setAppointments] = useState<any[]>([])
+  const router = useRouter()
 
-  const upcomingAppointments = [
-    {
-      id: 1,
-      salon: "Salão Elegance",
-      professional: "Ana Costa",
-      service: "Corte + Escova",
-      date: "2024-01-20",
-      time: "14:00",
-      duration: "90 min",
-      price: 140,
-      status: "confirmed",
-      address: "Rua das Flores, 123 - Centro",
-      phone: "(11) 3333-4444",
-      avatar: "/placeholder.svg?height=60&width=60",
-      canCancel: true,
-      canReschedule: true,
-    },
-    {
-      id: 2,
-      salon: "Beauty Studio",
-      professional: "Lucia Mendes",
-      service: "Manicure + Pedicure",
-      date: "2024-01-22",
-      time: "16:00",
-      duration: "120 min",
-      price: 80,
-      status: "confirmed",
-      address: "Av. Principal, 456 - Jardins",
-      phone: "(11) 2222-3333",
-      avatar: "/placeholder.svg?height=60&width=60",
-      canCancel: true,
-      canReschedule: true,
-    },
-  ]
+  // Busca agendamentos reais do backend
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/auth/login")
+      return
+    }
+    async function fetchAppointments() {
+      setLoading(true)
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/client`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) throw new Error("Erro ao buscar agendamentos")
+        const data = await res.json()
+        setAppointments(data.appointments || data) // depende do backend
+      } catch (e) {
+        setAppointments([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAppointments()
+  }, [router])
 
-  const pastAppointments = [
-    {
-      id: 3,
-      salon: "Cabelo & Cia",
-      professional: "Roberto Santos",
-      service: "Coloração + Luzes",
-      date: "2024-01-10",
-      time: "09:00",
-      duration: "180 min",
-      price: 280,
-      status: "completed",
-      address: "Rua do Comércio, 789 - Vila Nova",
-      phone: "(11) 1111-2222",
-      avatar: "/placeholder.svg?height=60&width=60",
-      rating: null,
-      canReview: true,
-    },
-    {
-      id: 4,
-      salon: "Salão Elegance",
-      professional: "Ana Costa",
-      service: "Corte Feminino",
-      date: "2024-01-05",
-      time: "15:30",
-      duration: "60 min",
-      price: 80,
-      status: "completed",
-      address: "Rua das Flores, 123 - Centro",
-      phone: "(11) 3333-4444",
-      avatar: "/placeholder.svg?height=60&width=60",
-      rating: 5,
-      review: "Excelente atendimento! Ana é muito profissional e o resultado ficou perfeito.",
-      canReview: false,
-    },
-    {
-      id: 5,
-      salon: "Beauty Studio",
-      professional: "Carlos Lima",
-      service: "Corte Masculino + Barba",
-      date: "2023-12-28",
-      time: "11:00",
-      duration: "60 min",
-      price: 65,
-      status: "completed",
-      address: "Av. Principal, 456 - Jardins",
-      phone: "(11) 2222-3333",
-      avatar: "/placeholder.svg?height=60&width=60",
-      rating: 4,
-      review: "Muito bom! Recomendo.",
-      canReview: false,
-    },
-    {
-      id: 6,
-      salon: "Spa Relax",
-      professional: "Fernanda Oliveira",
-      service: "Limpeza de Pele",
-      date: "2023-12-20",
-      time: "14:00",
-      duration: "90 min",
-      price: 150,
-      status: "cancelled",
-      address: "Rua da Paz, 321 - Moema",
-      phone: "(11) 4444-5555",
-      avatar: "/placeholder.svg?height=60&width=60",
-      rating: null,
-      canReview: false,
-    },
-  ]
+  // Separar próximos e históricos
+  const now = new Date()
+  const upcomingAppointments = appointments.filter(a =>
+    a.status !== "cancelled" &&
+    new Date(`${a.date}T${a.time}`) >= now
+  )
+  const pastAppointments = appointments.filter(a =>
+    a.status === "cancelled" ||
+    new Date(`${a.date}T${a.time}`) < now
+  )
+
+  // Filtro de período para histórico
+  const filteredPastAppointments = pastAppointments.filter((appointment) => {
+    if (filterPeriod === "all") return true
+    const appointmentDate = new Date(appointment.date)
+    const diffTime = now.getTime() - appointmentDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    switch (filterPeriod) {
+      case "week":
+        return diffDays <= 7
+      case "month":
+        return diffDays <= 30
+      case "3months":
+        return diffDays <= 90
+      default:
+        return true
+    }
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -141,12 +95,52 @@ export default function AppointmentsPage() {
     }
   }
 
-  const handleSubmitReview = (appointmentId: number) => {
-    // Implementar lógica de envio da avaliação
-    console.log("Review submitted:", { appointmentId, rating: selectedRating, review: reviewText })
-    setSelectedRating(0)
-    setReviewText("")
+  const getLocalDate = (date: string) => {
+    // Adiciona 'T12:00' para evitar problemas de fuso
+    return new Date(date + "T12:00:00")
   }
+
+  // Envio de avaliação (exemplo)
+  const handleSubmitReview = async (appointmentId: string) => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/auth/login")
+      return
+    }
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: selectedRating, review: reviewText }),
+      })
+      if (!res.ok) throw new Error("Erro ao enviar avaliação")
+      alert("Avaliação enviada!")
+      setSelectedRating(0)
+      setReviewText("")
+    } catch (e) {
+      alert("Erro ao enviar avaliação")
+    }
+  }
+
+  const handleCancel = async (id: string) => {
+  const token = localStorage.getItem("token")
+  if (!token) return router.push("/auth/login")
+  if (!window.confirm("Tem certeza que deseja cancelar este agendamento?")) return
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error("Erro ao cancelar")
+    setAppointments((prev) => prev.map(a => a.id === id ? { ...a, status: "cancelled" } : a))
+    alert("Agendamento cancelado!")
+  } catch (e) {
+    alert("Erro ao cancelar agendamento")
+  }
+}
 
   const StarRating = ({
     rating,
@@ -170,25 +164,9 @@ export default function AppointmentsPage() {
     )
   }
 
-  const filteredPastAppointments = pastAppointments.filter((appointment) => {
-    if (filterPeriod === "all") return true
-
-    const appointmentDate = new Date(appointment.date)
-    const now = new Date()
-    const diffTime = now.getTime() - appointmentDate.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    switch (filterPeriod) {
-      case "week":
-        return diffDays <= 7
-      case "month":
-        return diffDays <= 30
-      case "3months":
-        return diffDays <= 90
-      default:
-        return true
-    }
-  })
+  if (loading) {
+    return <div className="p-6">Carregando...</div>
+  }
 
   return (
     <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
@@ -205,7 +183,7 @@ export default function AppointmentsPage() {
             <TabsTrigger value="history">Histórico ({pastAppointments.length})</TabsTrigger>
           </TabsList>
 
-          {/* Upcoming Appointments */}
+          {/* Próximos Agendamentos */}
           <TabsContent value="upcoming">
             <div className="space-y-6">
               {upcomingAppointments.length > 0 ? (
@@ -215,18 +193,18 @@ export default function AppointmentsPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                           <Avatar className="w-16 h-16">
-                            <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
+                            <AvatarImage src={appointment.professionalAvatar || "/placeholder.svg"} />
                             <AvatarFallback className="bg-[#FF96B2] dark:bg-[#c0264b] text-white">
-                              {appointment.professional
-                                .split(" ")
-                                .map((n) => n[0])
+                              {appointment.professionalName
+                                ?.split(" ")
+                                .map((n: string) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-[#313131] dark:text-white">{appointment.service}</CardTitle>
+                            <CardTitle className="text-[#313131] dark:text-white">{appointment.serviceName}</CardTitle>
                             <CardDescription className="text-base dark:text-gray-400">
-                              {appointment.salon} • {appointment.professional}
+                              {appointment.salonName} • {appointment.professionalName}
                             </CardDescription>
                           </div>
                         </div>
@@ -238,7 +216,7 @@ export default function AppointmentsPage() {
                         <div className="space-y-2">
                           <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Calendar className="w-4 h-4 mr-2" />
-                            {new Date(appointment.date).toLocaleDateString("pt-BR", {
+                            {getLocalDate(appointment.date).toLocaleDateString("pt-BR", {
                               weekday: "long",
                               year: "numeric",
                               month: "long",
@@ -247,48 +225,30 @@ export default function AppointmentsPage() {
                           </div>
                           <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Clock className="w-4 h-4 mr-2" />
-                            {appointment.time} • {appointment.duration}
+                            {appointment.time} • {appointment.duration || ""}
                           </div>
                           <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <MapPin className="w-4 h-4 mr-2" />
-                            {appointment.address}
+                            {appointment.salonAddress}
                           </div>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Phone className="w-4 h-4 mr-2" />
-                            {appointment.phone}
+                            {appointment.salonPhone}
                           </div>
-                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.price}</div>
+                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.servicePrice}</div>
                         </div>
                       </div>
-
-                      <div className="flex flex-wrap gap-2 pt-4 border-t border-[#EFEFEF] dark:border-[#232326]">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Contatar
-                        </Button>
-                        {appointment.canReschedule && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
-                          >
-                            <RotateCcw className="w-4 h-4 mr-2" />
-                            Reagendar
-                          </Button>
-                        )}
-                        {appointment.canCancel && (
-                          <Button variant="outline" size="sm" className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
-                            <X className="w-4 h-4 mr-2" />
-                            Cancelar
-                          </Button>
-                        )}
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-400 text-red-600 hover:bg-red-100"
+                        onClick={() => handleCancel(appointment.id)}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancelar
+                      </Button>
                     </CardContent>
                   </Card>
                 ))
@@ -298,17 +258,17 @@ export default function AppointmentsPage() {
                     <Calendar className="w-16 h-16 mx-auto mb-4 text-[#313131]/30 dark:text-gray-600" />
                     <h3 className="text-xl font-semibold text-[#313131] dark:text-white mb-2">Nenhum agendamento próximo</h3>
                     <p className="text-[#313131]/70 dark:text-gray-400 mb-4">Que tal agendar um novo serviço?</p>
-                    <Button className="bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white">Agendar Serviço</Button>
+                    <Button className="bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white" onClick={() => router.push("/salons")}>Agendar Serviço</Button>
                   </CardContent>
                 </Card>
               )}
             </div>
           </TabsContent>
 
-          {/* History */}
+          {/* Histórico */}
           <TabsContent value="history">
             <div className="space-y-6">
-              {/* Filter */}
+              {/* Filtro */}
               <Card className="border-0 shadow-lg dark:bg-[#232326]">
                 <CardContent className="pt-6">
                   <div className="flex items-center space-x-4">
@@ -328,7 +288,7 @@ export default function AppointmentsPage() {
                 </CardContent>
               </Card>
 
-              {/* History List */}
+              {/* Lista de históricos */}
               {filteredPastAppointments.length > 0 ? (
                 filteredPastAppointments.map((appointment) => (
                   <Card key={appointment.id} className="border-0 shadow-lg dark:bg-[#232326]">
@@ -336,18 +296,18 @@ export default function AppointmentsPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                           <Avatar className="w-16 h-16">
-                            <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
+                            <AvatarImage src={appointment.professionalAvatar || "/placeholder.svg"} />
                             <AvatarFallback className="bg-[#FF96B2] dark:bg-[#c0264b] text-white">
-                              {appointment.professional
-                                .split(" ")
-                                .map((n) => n[0])
+                              {appointment.professionalName
+                                ?.split(" ")
+                                .map((n: string) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-[#313131] dark:text-white">{appointment.service}</CardTitle>
+                            <CardTitle className="text-[#313131] dark:text-white">{appointment.serviceName}</CardTitle>
                             <CardDescription className="text-base dark:text-gray-400">
-                              {appointment.salon} • {appointment.professional}
+                              {appointment.salonName} • {appointment.professionalName}
                             </CardDescription>
                           </div>
                         </div>
@@ -363,15 +323,15 @@ export default function AppointmentsPage() {
                           </div>
                           <div className="flex items-center text-[#313131]/70 dark:text-gray-400">
                             <Clock className="w-4 h-4 mr-2" />
-                            {appointment.time} • {appointment.duration}
+                            {appointment.time} • {appointment.duration || ""}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.price}</div>
+                          <div className="text-2xl font-bold text-[#FF96B2] dark:text-[#f472b6]">R$ {appointment.servicePrice}</div>
                         </div>
                       </div>
 
-                      {/* Rating Section */}
+                      {/* Avaliação */}
                       {appointment.status === "completed" && (
                         <div className="pt-4 border-t border-[#EFEFEF] dark:border-[#232326]">
                           {appointment.rating ? (
@@ -387,62 +347,60 @@ export default function AppointmentsPage() {
                               )}
                             </div>
                           ) : (
-                            appointment.canReview && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
-                                  >
-                                    <Star className="w-4 h-4 mr-2" />
-                                    Avaliar Atendimento
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md dark:bg-[#232326]">
-                                  <DialogHeader>
-                                    <DialogTitle className="text-[#313131] dark:text-white">Avaliar Atendimento</DialogTitle>
-                                    <DialogDescription className="dark:text-gray-400">
-                                      Como foi sua experiência com {appointment.professional}?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label className="text-sm font-medium text-[#313131] dark:text-white">Nota geral</Label>
-                                      <div className="mt-2">
-                                        <StarRating rating={selectedRating} onRatingChange={setSelectedRating} />
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="review" className="text-sm font-medium text-[#313131] dark:text-white">
-                                        Comentário (opcional)
-                                      </Label>
-                                      <Textarea
-                                        id="review"
-                                        placeholder="Conte como foi sua experiência..."
-                                        className="mt-2 border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#f472b6] dark:bg-[#18181b] dark:text-white"
-                                        value={reviewText}
-                                        onChange={(e) => setReviewText(e.target.value)}
-                                      />
-                                    </div>
-                                    <div className="flex space-x-2">
-                                      <Button
-                                        className="flex-1 bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white"
-                                        onClick={() => handleSubmitReview(appointment.id)}
-                                        disabled={selectedRating === 0}
-                                      >
-                                        Enviar Avaliação
-                                      </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-[#FF96B2] dark:border-[#f472b6] text-[#FF96B2] dark:text-[#f472b6] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#f472b6] dark:hover:text-white"
+                                >
+                                  <Star className="w-4 h-4 mr-2" />
+                                  Avaliar Atendimento
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-md dark:bg-[#232326]">
+                                <DialogHeader>
+                                  <DialogTitle className="text-[#313131] dark:text-white">Avaliar Atendimento</DialogTitle>
+                                  <DialogDescription className="dark:text-gray-400">
+                                    Como foi sua experiência com {appointment.professionalName}?
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <Label className="text-sm font-medium text-[#313131] dark:text-white">Nota geral</Label>
+                                    <div className="mt-2">
+                                      <StarRating rating={selectedRating} onRatingChange={setSelectedRating} />
                                     </div>
                                   </div>
-                                </DialogContent>
-                              </Dialog>
-                            )
+                                  <div>
+                                    <Label htmlFor="review" className="text-sm font-medium text-[#313131] dark:text-white">
+                                      Comentário (opcional)
+                                    </Label>
+                                    <Textarea
+                                      id="review"
+                                      placeholder="Conte como foi sua experiência..."
+                                      className="mt-2 border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#f472b6] dark:bg-[#18181b] dark:text-white"
+                                      value={reviewText}
+                                      onChange={(e) => setReviewText(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      className="flex-1 bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white"
+                                      onClick={() => handleSubmitReview(appointment.id)}
+                                      disabled={selectedRating === 0}
+                                    >
+                                      Enviar Avaliação
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           )}
                         </div>
                       )}
 
-                      {/* Repeat Service */}
+                      {/* Repetir serviço */}
                       {appointment.status === "completed" && (
                         <div className="flex justify-end">
                           <Button size="sm" className="bg-[#FF96B2] dark:bg-[#f472b6] hover:bg-[#FF96B2]/90 dark:hover:bg-[#c0264b] text-white">
