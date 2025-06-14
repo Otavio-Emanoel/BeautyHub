@@ -153,28 +153,16 @@ function ProfileSection() {
                   .join("")}
               </AvatarFallback>
             </Avatar>
-            <label>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoChange}
-                disabled={uploading}
-              />
-              <Button
-                size="sm"
-                className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90"
-                asChild
-                disabled={uploading}
-              >
-                <span>
-                  <Camera className="w-4 h-4" />
-                </span>
-              </Button>
-            </label>
           </div>
           <div className="space-y-2">
-            <p className="text-xs text-[#313131]/50 dark:text-white/50">Recomendado: 400x400px, máximo 2MB</p>
+            <Label htmlFor="avatar" className="dark:text-white">Link da foto (URL)</Label>
+            <Input
+              id="avatar"
+              placeholder="https://exemplo.com/sua-foto.jpg"
+              value={profileData.avatar}
+              onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
+            />
+            {/* <p className="text-xs text-[#313131]/50 dark:text-white/50">Recomendado: 400x400px, máximo 2MB</p> */}
           </div>
         </CardContent>
       </Card>
@@ -304,6 +292,8 @@ function ServicesSection() {
 
   const [services, setServices] = useState<any[]>([])
   const [loadingServices, setLoadingServices] = useState(true)
+  const [editingService, setEditingService] = useState<any | null>(null)
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const [newService, setNewService] = useState({
     name: "",
@@ -332,6 +322,31 @@ function ServicesSection() {
     }
     fetchServices()
   }, [])
+
+  const handleEditService = async () => {
+    if (!editingService) return
+    setSavingEdit(true)
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services/${editingService.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editingService),
+      })
+      if (!res.ok) throw new Error("Erro ao editar serviço")
+      setServices((prev) =>
+        prev.map((s) => (s.id === editingService.id ? editingService : s))
+      )
+      setEditingService(null)
+    } catch (e) {
+      alert("Erro ao editar serviço")
+    } finally {
+      setSavingEdit(false)
+    }
+  }
 
   // Adicionar serviço
   const handleAddService = async () => {
@@ -478,9 +493,76 @@ function ServicesSection() {
                       <Badge className="bg-[#FF96B2]/10 dark:bg-[#FF5C8A]/10 text-[#FF96B2] dark:text-[#FF5C8A]">{service.category}</Badge>
                     </div>
                     <div className="flex space-x-1">
-                      <Button size="sm" variant="ghost">
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                      <Dialog open={editingService?.id === service.id} onOpenChange={(open) => !open && setEditingService(null)}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingService(service)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
+                          <DialogHeader>
+                            <DialogTitle className="text-[#313131] dark:text-white">Editar Serviço</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label>Nome do serviço</Label>
+                              <Input
+                                value={editingService?.name || ""}
+                                onChange={(e) => setEditingService((prev: any) => ({ ...prev, name: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Categoria</Label>
+                              <Select
+                                value={editingService?.category || ""}
+                                onValueChange={(value) => setEditingService((prev: any) => ({ ...prev, category: value }))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a categoria" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Cabelo">Cabelo</SelectItem>
+                                  <SelectItem value="Unhas">Unhas</SelectItem>
+                                  <SelectItem value="Estética">Estética</SelectItem>
+                                  <SelectItem value="Maquiagem">Maquiagem</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Duração (min)</Label>
+                                <Input
+                                  type="number"
+                                  value={editingService?.duration || ""}
+                                  onChange={(e) => setEditingService((prev: any) => ({ ...prev, duration: Number(e.target.value) }))}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Preço (R$)</Label>
+                                <Input
+                                  type="number"
+                                  value={editingService?.price || ""}
+                                  onChange={(e) => setEditingService((prev: any) => ({ ...prev, price: Number(e.target.value) }))}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Descrição</Label>
+                              <Textarea
+                                value={editingService?.description || ""}
+                                onChange={(e) => setEditingService((prev: any) => ({ ...prev, description: e.target.value }))}
+                              />
+                            </div>
+                            <Button
+                              className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] text-white"
+                              onClick={handleEditService}
+                              disabled={savingEdit}
+                            >
+                              Salvar Alterações
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button size="sm" variant="ghost" className="text-red-600">

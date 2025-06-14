@@ -217,6 +217,31 @@ export async function createProfessionalService(req: Request, res: Response) {
     }
 }
 
+// Editar serviço do profissional
+export async function editProfessionalService(req: Request, res: Response) {
+    const professionalId = req.users?.uid;
+    const { id } = req.params;
+    const { name, description, price, duration, category } = req.body;
+
+    if (!professionalId || !id) {
+        return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+    }
+
+    try {
+        const serviceRef = admin.firestore().collection('services').doc(id);
+        const serviceDoc = await serviceRef.get();
+        if (!serviceDoc.exists) return res.status(404).json({ error: "Serviço não encontrado" });
+        const service = serviceDoc.data();
+        if (service?.professionalId !== professionalId) {
+            return res.status(403).json({ error: "Você não tem permissão para editar este serviço" });
+        }
+        await serviceRef.update({ name, description, price, duration, category });
+        res.status(200).json({ message: "Serviço atualizado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao editar serviço", details: error.message });
+    }
+}
+
 export async function deleteProfessionalService(req: Request, res: Response) {
     const professionalId = req.users?.uid;
     const { id } = req.params;
