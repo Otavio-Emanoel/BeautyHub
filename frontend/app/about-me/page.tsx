@@ -17,6 +17,238 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 
 
+function ServicesSection() {
+
+  const [services, setServices] = useState<any[]>([])
+  const [loadingServices, setLoadingServices] = useState(true)
+
+  const [newService, setNewService] = useState({
+    name: "",
+    category: "",
+    duration: 60,
+    price: 0,
+    description: "",
+  })
+
+  // Buscar serviços do profissional
+  useEffect(() => {
+    const fetchServices = async () => {
+      setLoadingServices(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setServices(data.services || [])
+      } catch (e) {
+        setServices([])
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [])
+
+  // Adicionar serviço
+  const handleAddService = async () => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newService),
+      })
+      if (!res.ok) throw new Error("Erro ao adicionar serviço")
+      setNewService({ name: "", category: "", duration: 60, price: 0, description: "" })
+      // Atualiza lista
+      const data = await res.json()
+      setServices((prev) => [...prev, { ...newService, id: data.serviceId }])
+    } catch (e) {
+      alert("Erro ao adicionar serviço")
+    }
+  }
+
+  // Excluir serviço
+  const handleDeleteService = async (id: string) => {
+    const token = localStorage.getItem("token")
+    if (!window.confirm("Deseja excluir este serviço?")) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao excluir serviço")
+      setServices((prev) => prev.filter((s) => s.id !== id))
+    } catch (e) {
+      alert("Erro ao excluir serviço")
+    }
+  }
+
+  return (
+     <div className="space-y-6">
+              <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-[#313131] dark:text-white">Meus Serviços</CardTitle>
+                      <CardDescription className="dark:text-white/70">Gerencie os serviços que você oferece</CardDescription>
+                    </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Novo Serviço
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
+                        <DialogHeader>
+                          <DialogTitle className="text-[#313131] dark:text-white">Adicionar Serviço</DialogTitle>
+                          <DialogDescription className="dark:text-white/70">Preencha as informações do novo serviço</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="serviceName" className="dark:text-white">Nome do serviço</Label>
+                            <Input
+                              id="serviceName"
+                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                              value={newService.name}
+                              onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="serviceCategory" className="dark:text-white">Categoria</Label>
+                            <Select
+                              value={newService.category}
+                              onValueChange={(value) => setNewService({ ...newService, category: value })}
+                            >
+                              <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
+                                <SelectValue placeholder="Selecione a categoria">
+                                  {newService.category}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+                                <SelectItem value="Cabelo">Cabelo</SelectItem>
+                                <SelectItem value="Unhas">Unhas</SelectItem>
+                                <SelectItem value="Estética">Estética</SelectItem>
+                                <SelectItem value="Maquiagem">Maquiagem</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="serviceDuration" className="dark:text-white">Duração (min)</Label>
+                              <Input
+                                id="serviceDuration"
+                                type="number"
+                                className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                                value={newService.duration}
+                                onChange={(e) =>
+                                  setNewService({ ...newService, duration: Number.parseInt(e.target.value) })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="servicePrice" className="dark:text-white">Preço (R$)</Label>
+                              <Input
+                                id="servicePrice"
+                                type="number"
+                                className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                                value={newService.price}
+                                onChange={(e) =>
+                                  setNewService({ ...newService, price: Number.parseFloat(e.target.value) })
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="serviceDescription" className="dark:text-white">Descrição</Label>
+                            <Textarea
+                              id="serviceDescription"
+                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                              value={newService.description}
+                              onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+                            />
+                          </div>
+                          <Button
+                            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
+                            onClick={handleAddService}
+                          >
+                            Adicionar Serviço
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {services.map((service) => (
+                      <Card key={service.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg text-[#313131] dark:text-white">{service.name}</CardTitle>
+                              <Badge className="bg-[#FF96B2]/10 dark:bg-[#FF5C8A]/10 text-[#FF96B2] dark:text-[#FF5C8A]">{service.category}</Badge>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button size="sm" variant="ghost">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="ghost" className="text-red-600">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="dark:text-white text-lg">Excluir serviço</AlertDialogTitle>
+                                    <AlertDialogDescription className="dark:text-white/70">
+                                      Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-red-600 hover:bg-red-700 text-white"
+                                      onClick={() => handleDeleteService(service.id)}
+                                    >
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-3">{service.description}</p>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-4 text-sm text-[#313131]/70 dark:text-white/70">
+                              <div className="flex items-center">
+                                <Clock className="w-4 h-4 mr-1" />
+                                {service.duration} min
+                              </div>
+                              <div className="flex items-center">
+                                <DollarSign className="w-4 h-4 mr-1" />
+                                R$ {service.price}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+  )
+}
+
 function CertificationSection() {
 
   const [certifications, setCertifications] = useState<any[]>([])
@@ -476,17 +708,6 @@ export default function ProfessionalProfilePage() {
   const [error, setError] = useState("")
   const router = useRouter()
 
-  const [services, setServices] = useState<any[]>([])
-  const [loadingServices, setLoadingServices] = useState(true)
-
-  const [newService, setNewService] = useState({
-    name: "",
-    category: "",
-    duration: 60,
-    price: 0,
-    description: "",
-  })
-
 
 
   
@@ -586,63 +807,7 @@ export default function ProfessionalProfilePage() {
     router.push("/auth/login")
   }
 
-  // Buscar serviços do profissional
-  useEffect(() => {
-    const fetchServices = async () => {
-      setLoadingServices(true)
-      try {
-        const token = localStorage.getItem("token")
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const data = await res.json()
-        setServices(data.services || [])
-      } catch (e) {
-        setServices([])
-      } finally {
-        setLoadingServices(false)
-      }
-    }
-    fetchServices()
-  }, [])
-
-  // Adicionar serviço
-  const handleAddService = async () => {
-    const token = localStorage.getItem("token")
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newService),
-      })
-      if (!res.ok) throw new Error("Erro ao adicionar serviço")
-      setNewService({ name: "", category: "", duration: 60, price: 0, description: "" })
-      // Atualiza lista
-      const data = await res.json()
-      setServices((prev) => [...prev, { ...newService, id: data.serviceId }])
-    } catch (e) {
-      alert("Erro ao adicionar serviço")
-    }
-  }
-
-  // Excluir serviço
-  const handleDeleteService = async (id: string) => {
-    const token = localStorage.getItem("token")
-    if (!window.confirm("Deseja excluir este serviço?")) return
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error("Erro ao excluir serviço")
-      setServices((prev) => prev.filter((s) => s.id !== id))
-    } catch (e) {
-      alert("Erro ao excluir serviço")
-    }
-  }
+  
 
 
   if (loading) return <div>Carregando...</div>
@@ -831,170 +996,12 @@ export default function ProfessionalProfilePage() {
 
           {/* Services Tab */}
           <TabsContent value="services">
-            <div className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle className="text-[#313131] dark:text-white">Meus Serviços</CardTitle>
-                      <CardDescription className="dark:text-white/70">Gerencie os serviços que você oferece</CardDescription>
-                    </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Novo Serviço
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md bg-white dark:bg-[#232326]">
-                        <DialogHeader>
-                          <DialogTitle className="text-[#313131] dark:text-white">Adicionar Serviço</DialogTitle>
-                          <DialogDescription className="dark:text-white/70">Preencha as informações do novo serviço</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="serviceName" className="dark:text-white">Nome do serviço</Label>
-                            <Input
-                              id="serviceName"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                              value={newService.name}
-                              onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="serviceCategory" className="dark:text-white">Categoria</Label>
-                            <Select
-                              value={newService.category}
-                              onValueChange={(value) => setNewService({ ...newService, category: value })}
-                            >
-                              <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
-                                <SelectValue placeholder="Selecione a categoria">
-                                  {newService.category}
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
-                                <SelectItem value="Cabelo">Cabelo</SelectItem>
-                                <SelectItem value="Unhas">Unhas</SelectItem>
-                                <SelectItem value="Estética">Estética</SelectItem>
-                                <SelectItem value="Maquiagem">Maquiagem</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="serviceDuration" className="dark:text-white">Duração (min)</Label>
-                              <Input
-                                id="serviceDuration"
-                                type="number"
-                                className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                                value={newService.duration}
-                                onChange={(e) =>
-                                  setNewService({ ...newService, duration: Number.parseInt(e.target.value) })
-                                }
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="servicePrice" className="dark:text-white">Preço (R$)</Label>
-                              <Input
-                                id="servicePrice"
-                                type="number"
-                                className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                                value={newService.price}
-                                onChange={(e) =>
-                                  setNewService({ ...newService, price: Number.parseFloat(e.target.value) })
-                                }
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="serviceDescription" className="dark:text-white">Descrição</Label>
-                            <Textarea
-                              id="serviceDescription"
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                              value={newService.description}
-                              onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-                            />
-                          </div>
-                          <Button
-                            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
-                            onClick={handleAddService}
-                          >
-                            Adicionar Serviço
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {services.map((service) => (
-                      <Card key={service.id} className="border border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b]">
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg text-[#313131] dark:text-white">{service.name}</CardTitle>
-                              <Badge className="bg-[#FF96B2]/10 dark:bg-[#FF5C8A]/10 text-[#FF96B2] dark:text-[#FF5C8A]">{service.category}</Badge>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button size="sm" variant="ghost">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" className="text-red-600">
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle className="dark:text-white text-lg">Excluir serviço</AlertDialogTitle>
-                                    <AlertDialogDescription className="dark:text-white/70">
-                                      Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      className="bg-red-600 hover:bg-red-700 text-white"
-                                      onClick={() => handleDeleteService(service.id)}
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-3">{service.description}</p>
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-4 text-sm text-[#313131]/70 dark:text-white/70">
-                              <div className="flex items-center">
-                                <Clock className="w-4 h-4 mr-1" />
-                                {service.duration} min
-                              </div>
-                              <div className="flex items-center">
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                R$ {service.price}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              <ServicesSection />
           </TabsContent>
 
           {/* Certifications Tab */}
           <TabsContent value="certifications">
-            <div className="space-y-6">
               <CertificationSection />
-            </div>
           </TabsContent>
 
           {/* Portfolio Tab */}
@@ -1043,7 +1050,7 @@ export default function ProfessionalProfilePage() {
                   {/* Services Preview */}
                   <div className="mb-8">
                     <h3 className="text-xl font-semibold text-[#313131] dark:text-white mb-4">Serviços</h3>
-                    <div className="grid gap-4">
+                    {/* <div className="grid gap-4">
                       {services.slice(0, 3).map((service) => (
                         <div key={service.id} className="flex justify-between items-center p-4 bg-[#EFEFEF] dark:bg-[#18181b] rounded-lg">
                           <div>
@@ -1059,7 +1066,7 @@ export default function ProfessionalProfilePage() {
                           </div>
                         </div>
                       ))}
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Portfolio Preview */}
