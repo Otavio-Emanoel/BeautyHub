@@ -292,3 +292,72 @@ export async function deleteCertification(req: Request, res: Response) {
     return res.status(400).json({ error: "Erro ao excluir certificação", details: error.message });
   }
 }
+
+// Adicionar item ao portfólio
+export async function addPortfolioItem(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  const { title, description, image } = req.body;
+  if (!professionalId || !title || !image) {
+    return res.status(400).json({ error: "Título e imagem são obrigatórios" });
+  }
+  try {
+    const ref = await admin.firestore().collection('portfolio').add({
+      professionalId,
+      title,
+      description: description || "",
+      image,
+      createdAt: new Date().toISOString()
+    });
+    res.status(201).json({ message: "Item adicionado ao portfólio", id: ref.id });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao adicionar item", details: error.message });
+  }
+}
+
+// Listar portfólio do profissional
+export async function listPortfolio(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const snap = await admin.firestore().collection('portfolio').where('professionalId', '==', professionalId).get();
+    const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json({ portfolio: items });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao listar portfólio", details: error.message });
+  }
+}
+
+// Editar item do portfólio
+export async function editPortfolioItem(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  const { id } = req.params;
+  const { title, description, image } = req.body;
+  if (!professionalId || !id) return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+  try {
+    const ref = admin.firestore().collection('portfolio').doc(id);
+    const doc = await ref.get();
+    if (!doc.exists) return res.status(404).json({ error: "Item não encontrado" });
+    if (doc.data()?.professionalId !== professionalId) return res.status(403).json({ error: "Sem permissão" });
+    await ref.update({ title, description, image });
+    res.status(200).json({ message: "Item atualizado" });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao editar item", details: error.message });
+  }
+}
+
+// Deletar item do portfólio
+export async function deletePortfolioItem(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  const { id } = req.params;
+  if (!professionalId || !id) return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+  try {
+    const ref = admin.firestore().collection('portfolio').doc(id);
+    const doc = await ref.get();
+    if (!doc.exists) return res.status(404).json({ error: "Item não encontrado" });
+    if (doc.data()?.professionalId !== professionalId) return res.status(403).json({ error: "Sem permissão" });
+    await ref.delete();
+    res.status(200).json({ message: "Item excluído" });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao excluir item", details: error.message });
+  }
+}

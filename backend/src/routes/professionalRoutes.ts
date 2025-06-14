@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, createProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, createProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import multer from "multer";
 
@@ -45,5 +45,17 @@ router.get("/certifications", authenticateToken, listCertifications);
 
 // Rota para deletar certificação profissional
 router.delete("/certifications/:id", authenticateToken, deleteCertification);
+
+// Rota para adicionar item ao portfólio do profissional
+router.post("/portfolio", authenticateToken, addPortfolioItem);
+
+// Rota para listar itens do portfólio do profissional
+router.get("/portfolio", authenticateToken, listPortfolio);
+
+// Rota para editar item do portfólio do profissional
+router.put("/portfolio/:id", authenticateToken, editPortfolioItem);
+
+// Rota para deletar item do portfólio do profissional
+router.delete("/portfolio/:id", authenticateToken, deletePortfolioItem);
 
 export default router;
