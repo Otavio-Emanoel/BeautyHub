@@ -168,3 +168,74 @@ export async function uploadProfessionalProfilePicture(req: any, res: any) {
 
   return res.json({ avatar: url });
 }
+
+// Lista os serviços do profissional logado
+export async function listOwnServices(req: Request, res: Response) {
+    const professionalId = req.users?.uid;
+    if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+    try {
+        const snapshot = await admin.firestore()
+            .collection('services')
+            .where('professionalId', '==', professionalId)
+            .get();
+
+        const services = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        res.status(200).json({ services });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao listar serviços", details: error.message });
+    }
+}
+
+export async function createProfessionalService(req: Request, res: Response) {
+    const professionalId = req.users?.uid;
+    const { name, description, price, duration, category } = req.body;
+
+    if (!professionalId || !name || !price || !duration || !category) {
+        return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+    }
+
+    try {
+        const serviceRef = await admin.firestore().collection('services').add({
+            professionalId,
+            name,
+            description,
+            duration,
+            price,
+            category,
+            active: true,
+            createdAt: new Date().toISOString()
+        });
+
+        res.status(201).json({ message: "Serviço criado com sucesso", serviceId: serviceRef.id });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao cadastrar serviço", details: error.message });
+    }
+}
+
+export async function deleteProfessionalService(req: Request, res: Response) {
+    const professionalId = req.users?.uid;
+    const { id } = req.params;
+
+    if (!professionalId || !id) {
+        return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+    }
+
+    try {
+        const serviceRef = admin.firestore().collection('services').doc(id);
+        const serviceDoc = await serviceRef.get();
+        if (!serviceDoc.exists) return res.status(404).json({ error: "Serviço não encontrado" });
+        const service = serviceDoc.data();
+        if (service?.professionalId !== professionalId) {
+            return res.status(403).json({ error: "Você não tem permissão para excluir este serviço" });
+        }
+        await serviceRef.delete();
+        res.status(200).json({ message: "Serviço deletado com sucesso" });
+    } catch (error: any) {
+        return res.status(400).json({ error: "Erro ao deletar serviço", details: error.message });
+    }
+}
