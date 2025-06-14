@@ -239,3 +239,56 @@ export async function deleteProfessionalService(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao deletar serviço", details: error.message });
     }
 }
+
+// Adicionar certificação
+export async function addCertification(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  const { name, institution, year, document } = req.body;
+  if (!professionalId || !name || !institution || !year) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
+  try {
+    const certRef = await admin.firestore().collection('certifications').add({
+      professionalId,
+      name,
+      institution,
+      year,
+      document: document || "",
+      verified: false,
+      createdAt: new Date().toISOString()
+    });
+    res.status(201).json({ message: "Certificação adicionada", id: certRef.id });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao adicionar certificação", details: error.message });
+  }
+}
+
+// Listar certificações do profissional
+export async function listCertifications(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const snap = await admin.firestore().collection('certifications').where('professionalId', '==', professionalId).get();
+    const certifications = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json({ certifications });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao listar certificações", details: error.message });
+  }
+}
+
+// Excluir certificação
+export async function deleteCertification(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  const { id } = req.params;
+  if (!professionalId || !id) return res.status(400).json({ error: "Dados obrigatórios não fornecidos" });
+  try {
+    const certRef = admin.firestore().collection('certifications').doc(id);
+    const certDoc = await certRef.get();
+    if (!certDoc.exists) return res.status(404).json({ error: "Certificação não encontrada" });
+    if (certDoc.data()?.professionalId !== professionalId) return res.status(403).json({ error: "Sem permissão" });
+    await certRef.delete();
+    res.status(200).json({ message: "Certificação excluída" });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao excluir certificação", details: error.message });
+  }
+}
