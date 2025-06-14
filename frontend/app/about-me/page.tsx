@@ -12,11 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { User, Camera, MapPin, Phone, Mail, Instagram, LogOut, Plus, Badge, Edit, Trash2, Clock, DollarSign, Award, FileText, Scissors, Star } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@radix-ui/react-select"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@radix-ui/react-dialog"
-import { DialogHeader } from "@/components/ui/dialog"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from "@radix-ui/react-alert-dialog"
-import { AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
+
 
 export default function ProfessionalProfilePage() {
   const [profileData, setProfileData] = useState<any>({
@@ -34,27 +33,13 @@ export default function ProfessionalProfilePage() {
   const [error, setError] = useState("")
   const router = useRouter()
 
+  const [services, setServices] = useState<any[]>([])
+  const [loadingServices, setLoadingServices] = useState(true)
+
+
   /* Só pra funcionar as outras abas por enquanto */
 
-  // MOCKS para as outras abas
-  const [services] = useState([
-    {
-      id: "1",
-      name: "Corte Feminino",
-      category: "Cabelo",
-      duration: 60,
-      price: 80,
-      description: "Corte moderno e personalizado para mulheres.",
-    },
-    {
-      id: "2",
-      name: "Manicure",
-      category: "Unhas",
-      duration: 40,
-      price: 35,
-      description: "Manicure completa com esmaltação.",
-    },
-  ])
+
   const [certifications] = useState([
     {
       id: "1",
@@ -104,19 +89,7 @@ export default function ProfessionalProfilePage() {
     price: 0,
     description: "",
   })
-  const handleAddService = () => {
-    // Apenas limpa o formulário, não adiciona de verdade
-    setNewService({
-      name: "",
-      category: "",
-      duration: 60,
-      price: 0,
-      description: "",
-    })
-  }
-  const handleDeleteService = (id: string) => {
-    // Não faz nada, só para não dar erro
-  }
+
 
   // MOCK para adicionar certificação
   const [newCertification, setNewCertification] = useState({
@@ -233,6 +206,64 @@ export default function ProfessionalProfilePage() {
     localStorage.removeItem("token")
     window.dispatchEvent(new Event("userChanged"))
     router.push("/auth/login")
+  }
+
+  // Buscar serviços do profissional
+  useEffect(() => {
+    const fetchServices = async () => {
+      setLoadingServices(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setServices(data.services || [])
+      } catch (e) {
+        setServices([])
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [])
+
+  // Adicionar serviço
+  const handleAddService = async () => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newService),
+      })
+      if (!res.ok) throw new Error("Erro ao adicionar serviço")
+      setNewService({ name: "", category: "", duration: 60, price: 0, description: "" })
+      // Atualiza lista
+      const data = await res.json()
+      setServices((prev) => [...prev, { ...newService, id: data.serviceId }])
+    } catch (e) {
+      alert("Erro ao adicionar serviço")
+    }
+  }
+
+  // Excluir serviço
+  const handleDeleteService = async (id: string) => {
+    const token = localStorage.getItem("token")
+    if (!window.confirm("Deseja excluir este serviço?")) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao excluir serviço")
+      setServices((prev) => prev.filter((s) => s.id !== id))
+    } catch (e) {
+      alert("Erro ao excluir serviço")
+    }
   }
 
   if (loading) return <div>Carregando...</div>
@@ -458,7 +489,9 @@ export default function ProfessionalProfilePage() {
                               onValueChange={(value) => setNewService({ ...newService, category: value })}
                             >
                               <SelectTrigger className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FF5C8A] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
-                                <SelectValue placeholder="Selecione a categoria" />
+                                <SelectValue placeholder="Selecione a categoria">
+                                  {newService.category}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
                                 <SelectItem value="Cabelo">Cabelo</SelectItem>
@@ -534,9 +567,9 @@ export default function ProfessionalProfilePage() {
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-white dark:bg-[#232326]">
+                                <AlertDialogContent className="bg-white dark:bg-[#232326] max-w-md rounded-xl shadow-xl">
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle className="dark:text-white">Excluir serviço</AlertDialogTitle>
+                                    <AlertDialogTitle className="dark:text-white text-lg">Excluir serviço</AlertDialogTitle>
                                     <AlertDialogDescription className="dark:text-white/70">
                                       Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.
                                     </AlertDialogDescription>
@@ -544,7 +577,7 @@ export default function ProfessionalProfilePage() {
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                     <AlertDialogAction
-                                      className="bg-red-600 hover:bg-red-700"
+                                      className="bg-red-600 hover:bg-red-700 text-white"
                                       onClick={() => handleDeleteService(service.id)}
                                     >
                                       Excluir
