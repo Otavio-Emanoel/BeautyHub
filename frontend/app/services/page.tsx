@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,8 @@ export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedLocation, setSelectedLocation] = useState("all")
   const [priceRange, setPriceRange] = useState("all")
+  const [services, setServices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   const categories = [
     { id: "all", name: "Todos os Serviços", icon: Sparkles },
@@ -23,149 +25,46 @@ export default function ServicesPage() {
     { id: "makeup", name: "Maquiagem", icon: Sparkles },
   ]
 
-  const services = [
-    {
-      id: 1,
-      professional: {
-        name: "Ana Costa",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.9,
-        reviews: 127,
-        experience: "5 anos",
-        location: "Vila Madalena, SP",
-      },
-      service: {
-        name: "Corte Feminino + Escova",
-        category: "hair",
-        description: "Corte personalizado com escova modeladora para realçar sua beleza natural",
-        duration: "90 min",
-        price: 120,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível hoje",
-      isVerified: true,
-    },
-    {
-      id: 2,
-      professional: {
-        name: "Mariana Silva",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.8,
-        reviews: 89,
-        experience: "3 anos",
-        location: "Jardins, SP",
-      },
-      service: {
-        name: "Manicure + Pedicure",
-        category: "nails",
-        description: "Cuidado completo para suas unhas com esmaltação profissional",
-        duration: "120 min",
-        price: 80,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível amanhã",
-      isVerified: true,
-    },
-    {
-      id: 3,
-      professional: {
-        name: "Carlos Lima",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.7,
-        reviews: 156,
-        experience: "7 anos",
-        location: "Pinheiros, SP",
-      },
-      service: {
-        name: "Corte Masculino + Barba",
-        category: "hair",
-        description: "Corte moderno com acabamento de barba para o homem contemporâneo",
-        duration: "60 min",
-        price: 65,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível hoje",
-      isVerified: true,
-    },
-    {
-      id: 4,
-      professional: {
-        name: "Lucia Mendes",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.9,
-        reviews: 203,
-        experience: "8 anos",
-        location: "Moema, SP",
-      },
-      service: {
-        name: "Limpeza de Pele",
-        category: "aesthetics",
-        description: "Limpeza profunda com extração e hidratação para pele radiante",
-        duration: "90 min",
-        price: 150,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível em 2 dias",
-      isVerified: true,
-    },
-    {
-      id: 5,
-      professional: {
-        name: "Fernanda Oliveira",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.8,
-        reviews: 94,
-        experience: "4 anos",
-        location: "Itaim Bibi, SP",
-      },
-      service: {
-        name: "Maquiagem Social",
-        category: "makeup",
-        description: "Maquiagem elegante para eventos sociais e ocasiões especiais",
-        duration: "75 min",
-        price: 180,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível hoje",
-      isVerified: true,
-    },
-    {
-      id: 6,
-      professional: {
-        name: "Roberto Santos",
-        avatar: "/placeholder.svg?height=60&width=60",
-        rating: 4.6,
-        reviews: 78,
-        experience: "6 anos",
-        location: "Brooklin, SP",
-      },
-      service: {
-        name: "Coloração + Luzes",
-        category: "hair",
-        description: "Transformação completa com coloração e mechas para um visual único",
-        duration: "180 min",
-        price: 280,
-        images: ["/placeholder.svg?height=200&width=300"],
-      },
-      availability: "Disponível amanhã",
-      isVerified: true,
-    },
-  ]
+  useEffect(() => {
+    setLoading(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services-public`)
+      .then(res => res.json())
+      .then(data => setServices(data.services || []))
+      .catch(() => setServices([]))
+      .finally(() => setLoading(false))
+  }, [])
 
   const filteredServices = services.filter((service) => {
     const matchesSearch =
-      service.service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.professional.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || service.service.category === selectedCategory
-    const matchesLocation = selectedLocation === "all" || service.professional.location.includes(selectedLocation)
+      (service.name || service.serviceName || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (service.professional?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    const matchesCategory =
+      selectedCategory === "all" ||
+      service.category === selectedCategory
+    const matchesLocation =
+      selectedLocation === "all" ||
+      (service.professional?.location || "").includes(selectedLocation)
     const matchesPrice =
       priceRange === "all" ||
-      (priceRange === "low" && service.service.price <= 100) ||
-      (priceRange === "medium" && service.service.price > 100 && service.service.price <= 200) ||
-      (priceRange === "high" && service.service.price > 200)
+      (priceRange === "low" && service.price <= 100) ||
+      (priceRange === "medium" && service.price > 100 && service.price <= 200) ||
+      (priceRange === "high" && service.price > 200)
 
     return matchesSearch && matchesCategory && matchesLocation && matchesPrice
   })
+
+  const handleAgendar = (serviceId: string, professionalId: string) => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      window.location.href = "/auth/login"
+      return
+    }
+    window.location.href = `/booking?serviceId=${serviceId}&professionalId=${professionalId}`
+  }
 
   return (
     <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
@@ -219,12 +118,9 @@ export default function ServicesPage() {
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
               <SelectItem value="all">Todas as regiões</SelectItem>
-              <SelectItem value="Vila Madalena">Vila Madalena</SelectItem>
-              <SelectItem value="Jardins">Jardins</SelectItem>
-              <SelectItem value="Pinheiros">Pinheiros</SelectItem>
-              <SelectItem value="Moema">Moema</SelectItem>
-              <SelectItem value="Itaim Bibi">Itaim Bibi</SelectItem>
-              <SelectItem value="Brooklin">Brooklin</SelectItem>
+              {[...new Set(services.map(s => s.professional?.location).filter(Boolean))].map((loc, idx) => (
+                <SelectItem key={idx} value={loc}>{loc}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -250,7 +146,9 @@ export default function ServicesPage() {
 
         {/* Services Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((item) => (
+          {loading ? (
+            <div className="col-span-full text-center py-12">Carregando...</div>
+          ) : filteredServices.map((item) => (
             <Card
               key={item.id}
               className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-white dark:bg-[#232326]"
@@ -258,14 +156,14 @@ export default function ServicesPage() {
               {/* Service Image */}
               <div className="relative h-48 bg-gradient-to-br from-[#FF96B2]/20 to-[#FF96B2]/10 dark:from-pink-600/20 dark:to-pink-600/10">
                 <img
-                  src={item.service.images[0] || "/placeholder.svg"}
-                  alt={item.service.name}
+                  src={item.images?.[0] || "/placeholder.svg"}
+                  alt={item.name}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 left-3">
-                  <Badge className="bg-[#FF96B2] dark:bg-pink-600 text-white">{item.availability}</Badge>
+                  <Badge className="bg-[#FF96B2] dark:bg-pink-600 text-white">{item.availability || "Disponível"}</Badge>
                 </div>
-                {item.isVerified && (
+                {item.professional?.isVerified && (
                   <div className="absolute top-3 right-3">
                     <Badge className="bg-green-500 dark:bg-green-600 text-white">✓ Verificado</Badge>
                   </div>
@@ -273,32 +171,32 @@ export default function ServicesPage() {
               </div>
 
               <CardHeader className="pb-3">
-                <CardTitle className="text-[#313131] dark:text-white text-lg">{item.service.name}</CardTitle>
-                <p className="text-sm text-[#313131]/70 dark:text-white/70 line-clamp-2">{item.service.description}</p>
+                <CardTitle className="text-[#313131] dark:text-white text-lg">{item.name}</CardTitle>
+                <p className="text-sm text-[#313131]/70 dark:text-white/70 line-clamp-2">{item.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-4">
                 {/* Professional Info */}
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={item.professional.avatar || "/placeholder.svg"} />
+                    <AvatarImage src={item.professional?.avatar || "/placeholder.svg"} />
                     <AvatarFallback className="bg-[#FF96B2] dark:bg-pink-600 text-white">
-                      {item.professional.name
-                        .split(" ")
-                        .map((n) => n[0])
+                      {item.professional?.name
+                        ?.split(" ")
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-medium text-[#313131] dark:text-white">{item.professional.name}</p>
+                    <p className="font-medium text-[#313131] dark:text-white">{item.professional?.name}</p>
                     <div className="flex items-center space-x-2 text-sm text-[#313131]/70 dark:text-white/70">
                       <div className="flex items-center">
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span>{item.professional.rating}</span>
-                        <span className="ml-1">({item.professional.reviews})</span>
+                        <span>{item.professional?.rating || "4.8"}</span>
+                        <span className="ml-1">({item.professional?.reviews || "0"})</span>
                       </div>
                       <span>•</span>
-                      <span>{item.professional.experience}</span>
+                      <span>{item.professional?.experience}</span>
                     </div>
                   </div>
                 </div>
@@ -307,28 +205,33 @@ export default function ServicesPage() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-[#313131]/70 dark:text-white/70">
                     <Clock className="w-4 h-4 mr-1" />
-                    {item.service.duration}
+                    {item.duration} min
                   </div>
                   <div className="flex items-center text-[#313131]/70 dark:text-white/70">
                     <MapPin className="w-4 h-4 mr-1" />
-                    {item.professional.location.split(",")[0]}
+                    {(item.professional?.location || "").split(",")[0]}
                   </div>
                 </div>
 
                 {/* Price and Action */}
                 <div className="flex items-center justify-between pt-2 border-t border-[#EFEFEF] dark:border-[#27272a]">
                   <div>
-                    <span className="text-2xl font-bold text-[#FF96B2] dark:text-pink-400">R$ {item.service.price}</span>
+                    <span className="text-2xl font-bold text-[#FF96B2] dark:text-pink-400">R$ {item.price}</span>
                   </div>
                   <div className="flex space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       className="border-[#FF96B2] dark:border-pink-600 text-[#FF96B2] dark:text-pink-400 hover:bg-[#FF96B2] dark:hover:bg-pink-600 hover:text-white"
+                      onClick={() => window.location.href = `/about-me?id=${item.professional?.id}`}
                     >
                       Ver perfil
                     </Button>
-                    <Button size="sm" className="bg-[#FF96B2] dark:bg-pink-600 hover:bg-[#FF96B2]/90 dark:hover:bg-pink-700 text-white">
+                    <Button
+                      size="sm"
+                      className="bg-[#FF96B2] dark:bg-pink-600 hover:bg-[#FF96B2]/90 dark:hover:bg-pink-700 text-white"
+                      onClick={() => handleAgendar(item.id, item.professional?.id)}
+                    >
                       Agendar
                     </Button>
                   </div>
@@ -348,7 +251,7 @@ export default function ServicesPage() {
         )}
 
         {/* No Results */}
-        {filteredServices.length === 0 && (
+        {!loading && filteredServices.length === 0 && (
           <div className="text-center py-12">
             <div className="w-24 h-24 mx-auto mb-4 bg-[#EFEFEF] dark:bg-[#232326] rounded-full flex items-center justify-center">
               <Search className="w-12 h-12 text-[#313131]/30 dark:text-white/30" />
@@ -373,7 +276,9 @@ export default function ServicesPage() {
         <div className="mt-16 bg-gradient-to-r from-[#FF96B2] to-[#FF96B2]/80 dark:from-pink-600 dark:to-pink-700 rounded-2xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-4">Você é um profissional da beleza?</h2>
           <p className="text-lg mb-6 opacity-90">Cadastre-se e ofereça seus serviços para milhares de clientes</p>
-          <Button size="lg" className="bg-white dark:bg-[#232326] text-[#FF96B2] dark:text-pink-400 hover:bg-[#EFEFEF] dark:hover:bg-[#18181b] font-semibold">
+          <Button size="lg" className="bg-white dark:bg-[#232326] text-[#FF96B2] dark:text-pink-400 hover:bg-[#EFEFEF] dark:hover:bg-[#18181b] font-semibold"
+            onClick={() => window.location.href = "/auth/register"}
+          >
             Cadastrar como Profissional
           </Button>
         </div>

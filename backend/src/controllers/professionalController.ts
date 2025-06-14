@@ -191,6 +191,45 @@ export async function listOwnServices(req: Request, res: Response) {
     }
 }
 
+// Listar todos os serviços públicos de profissionais independentes
+export async function listPublicProfessionalServices(req: Request, res: Response) {
+  try {
+    // Busca todos os serviços ativos (sem filtrar por salonId)
+    const snapshot = await admin.firestore()
+      .collection('services')
+      .where('active', '==', true)
+      .get();
+
+    const services = await Promise.all(snapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      let professional = null;
+      if (data.professionalId) {
+        const profDoc = await admin.firestore().collection('professionals').doc(data.professionalId).get();
+        professional = profDoc.exists ? profDoc.data() : null;
+      }
+      return {
+        id: doc.id,
+        ...data,
+        professional: professional
+          ? {
+              id: data.professionalId,
+              name: professional.name,
+              avatar: professional.avatar || "",
+              rating: professional.rating || 4.8,
+              reviews: professional.reviews || 0,
+              experience: professional.experience || "",
+              location: professional.location || "",
+            }
+          : null,
+      };
+    }));
+
+    res.status(200).json({ services });
+  } catch (error: any) {
+    return res.status(400).json({ error: "Erro ao listar serviços públicos", details: error.message });
+  }
+}
+
 export async function createProfessionalService(req: Request, res: Response) {
     const professionalId = req.users?.uid;
     const { name, description, price, duration, category } = req.body;
