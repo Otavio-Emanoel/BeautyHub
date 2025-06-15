@@ -8,12 +8,203 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { User, Mail, Phone, MapPin, Camera, Shield, LogOut } from "lucide-react"
+import { User, Mail, Phone, MapPin, LogOut, Check, X, Star } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { Star } from "lucide-react"
 
+function formatDate(dateStr: string) {
+  if (!dateStr) return ""
+  const [year, month, day] = dateStr.split("-")
+  return `${day}/${month}/${year}`
+}
+
+function AtividadeTab() {
+  const [completedAppointments, setCompletedAppointments] = useState<any[]>([])
+  const [loadingCompleted, setLoadingCompleted] = useState(true)
+
+  useEffect(() => {
+    async function fetchCompletedAppointments() {
+      setLoadingCompleted(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/client`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        // Se vier como array direto:
+        const appointments = Array.isArray(data) ? data : data.appointments || []
+        setCompletedAppointments(appointments.filter((a: any) => a.status === "completed"))
+      } catch {
+        setCompletedAppointments([])
+      } finally {
+        setLoadingCompleted(false)
+      }
+    }
+    fetchCompletedAppointments()
+  }, [])
+
+  const [rateModal, setRateModal] = useState<{ open: boolean, appointment: any | null }>({ open: false, appointment: null })
+  const [rateValue, setRateValue] = useState(5)
+  const [rateComment, setRateComment] = useState("")
+  const [ratingLoading, setRatingLoading] = useState(false)
+
+  function openRateModal(appointment: any) {
+    setRateModal({ open: true, appointment })
+    setRateValue(5)
+    setRateComment("")
+  }
+
+  async function handleRate() {
+    if (!rateValue) {
+      alert("Escolha uma nota!")
+      return
+    }
+    setRatingLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${rateModal.appointment.id}/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: rateValue, review: rateComment }),
+      })
+      if (!res.ok) throw new Error("Erro ao enviar avaliação")
+      setCompletedAppointments((prev) =>
+        prev.map((a) =>
+          a.id === rateModal.appointment.id
+            ? { ...a, rating: rateValue, review: rateComment }
+            : a
+        )
+      )
+      setRateModal({ open: false, appointment: null })
+    } catch (e) {
+      alert("Erro ao enviar avaliação")
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+        <CardHeader>
+          <CardTitle className="text-[#313131] dark:text-white">Meus Serviços Concluídos</CardTitle>
+          <CardDescription className="dark:text-white/70">
+            Veja seus serviços concluídos e avalie sua experiência.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingCompleted ? (
+            <div className="py-8 text-center">Carregando...</div>
+          ) : completedAppointments.length === 0 ? (
+            <div className="py-8 text-center text-[#313131]/70 dark:text-white/70">
+              Você ainda não concluiu nenhum serviço.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {completedAppointments.map((appointment) => (
+                <div key={appointment.id} className="border-b border-[#EFEFEF] dark:border-[#232326] pb-4 mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{appointment.serviceName}</span>
+                    {appointment.professionalName && (
+                      <> com <span className="font-medium">{appointment.professionalName}</span></>
+                    )}
+                    <span className="text-xs text-[#313131]/60 dark:text-white/60 ml-2">
+                      {appointment.date ? formatDate(appointment.date) : ""}
+                    </span>
+                  </div>
+                  {appointment.rating ? (
+                    <>
+                      <div className="flex items-center gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className={`w-4 h-4 ${appointment.rating >= star ? "text-yellow-400" : "text-gray-300"}`} fill={appointment.rating >= star ? "#facc15" : "none"} />
+                        ))}
+                        <span className="ml-2 text-sm text-[#313131]/80 dark:text-white/80">{appointment.rating} estrelas</span>
+                      </div>
+                      {appointment.review && (
+                        <div className="text-[#313131]/70 dark:text-white/70 text-sm italic">"{appointment.review}"</div>
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white mt-2"
+                      onClick={() => openRateModal(appointment)}
+                    >
+                      Avaliar
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de avaliação */}
+      <Dialog open={rateModal.open} onOpenChange={(open) => !open && setRateModal({ open: false, appointment: null })}>
+        <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#313131] dark:text-white">Avaliar Atendimento</DialogTitle>
+            <DialogDescription className="dark:text-white/60">
+              Dê uma nota e deixe um comentário sobre o serviço recebido.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-1 text-sm dark:text-white">Nota</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`p-1 ${rateValue >= star ? "text-yellow-400" : "text-gray-400"}`}
+                    onClick={() => setRateValue(star)}
+                  >
+                    <Star className="w-6 h-6" fill={rateValue >= star ? "#facc15" : "none"} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block mb-1 text-sm dark:text-white">Comentário</label>
+              <Textarea
+                value={rateComment}
+                onChange={(e) => setRateComment(e.target.value)}
+                placeholder="Deixe seu comentário (opcional)"
+                className="border-[#FF96B2] dark:border-[#FF96B2] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                rows={3}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                onClick={() => setRateModal({ open: false, appointment: null })}
+                disabled={ratingLoading}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                onClick={handleRate}
+                disabled={ratingLoading}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Enviar Avaliação
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
 export default function AccountPage() {
   const [profileData, setProfileData] = useState<any>({
@@ -24,13 +215,14 @@ export default function AccountPage() {
     birthdate: "",
     gender: "",
     about: "",
+    avatar: "",
   })
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      const localUser = JSON.parse(localStorage.getItem("user") || "{}")
+      const localUser = JSON.parse(localStorage.getItem("user") || "{ }")
       if (!localUser || !localUser.role) {
         router.push("/auth/login")
         return
@@ -55,6 +247,7 @@ export default function AccountPage() {
           birthdate: data.birthdate || "",
           gender: data.gender || "",
           about: data.about || "",
+          avatar: data.avatar || data.photoURL || "", // Corrigido para garantir que a foto apareça ao relogar
         })
       } catch (e) {
         router.push("/auth/login")
@@ -64,65 +257,6 @@ export default function AccountPage() {
     }
     fetchProfileData()
   }, [router])
-
-  const [reviews, setReviews] = useState<any[]>([])
-  const [loadingReviews, setLoadingReviews] = useState(true)
-
-  useEffect(() => {
-    async function fetchReviews() {
-      setLoadingReviews(true)
-      try {
-        const token = localStorage.getItem("token")
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/client/reviews`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const data = await res.json()
-        setReviews(data.reviews || [])
-      } catch {
-        setReviews([])
-      } finally {
-        setLoadingReviews(false)
-      }
-    }
-    fetchReviews()
-  }, [])
-
-  // Upload profile picture 
-  const [uploading, setUploading] = useState(false);
-
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    const localUser = JSON.parse(localStorage.getItem("user") || "{}");
-    let endpoint = "";
-    if (localUser.role === "client") endpoint = "/api/client/profile/photo";
-    else if (localUser.role === "professional") endpoint = "/api/professional/profile/photo";
-    else if (localUser.role === "admin") endpoint = "/api/admin/profile/photo";
-    else return;
-
-    try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Erro ao enviar foto");
-      const data = await res.json();
-      setProfileData((prev: any) => ({ ...prev, avatar: data.avatar }));
-      alert("Foto atualizada com sucesso!");
-    } catch (e) {
-      alert("Erro ao enviar foto");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // Logout real
   const handleLogout = async () => {
@@ -135,7 +269,7 @@ export default function AccountPage() {
 
   // Atualizar perfil (exemplo para nome, email, telefone)
   const handleSaveProfile = async () => {
-    const localUser = JSON.parse(localStorage.getItem("user") || "{}")
+    const localUser = JSON.parse(localStorage.getItem("user") || "{ }")
     let endpoint = ""
     if (localUser.role === "client") endpoint = "/api/client/profile"
     else if (localUser.role === "professional") endpoint = "/api/professional/profile"
@@ -186,7 +320,7 @@ export default function AccountPage() {
                   <CardTitle className="text-[#313131] dark:text-white">Foto do Perfil</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
-                  <div className="relative inline-block">
+                  <div className="flex flex-col items-center gap-4">
                     <Avatar className="w-32 h-32 mx-auto">
                       <AvatarImage src={profileData.avatar || "/placeholder.svg"} />
                       <AvatarFallback className="text-2xl bg-[#FF96B2] dark:bg-[#FF96B2] text-white">
@@ -195,25 +329,13 @@ export default function AccountPage() {
                           : ""}
                       </AvatarFallback>
                     </Avatar>
-                    <label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoChange}
-                        disabled={uploading}
-                      />
-                      <Button
-                        size="sm"
-                        className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#FF96B2] cursor-pointer dark:bg-[#FF96B2] hover:bg-[#FF96B2]/90 dark:hover:bg-[#be185d]"
-                        asChild
-                        disabled={uploading}
-                      >
-                        <span>
-                          <Camera className="w-4 h-4" />
-                        </span>
-                      </Button>
-                    </label>
+                    <Input
+                      type="url"
+                      placeholder="Cole o link da sua foto de perfil"
+                      value={profileData.avatar || ""}
+                      onChange={e => setProfileData((prev: any) => ({ ...prev, avatar: e.target.value }))}
+                      className="w-full border-[#FF96B2] dark:border-[#FF96B2] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -350,46 +472,7 @@ export default function AccountPage() {
 
           {/* Atividade Tab */}
           <TabsContent value="activity">
-            <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
-              <CardHeader>
-                <CardTitle className="text-[#313131] dark:text-white">Minhas Avaliações</CardTitle>
-                <CardDescription className="dark:text-white/70">
-                  Veja as avaliações que você fez em serviços realizados.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingReviews ? (
-                  <div className="py-8 text-center">Carregando avaliações...</div>
-                ) : reviews.length === 0 ? (
-                  <div className="py-8 text-center text-[#313131]/70 dark:text-white/70">
-                    Você ainda não avaliou nenhum serviço.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-[#EFEFEF] dark:border-[#232326] pb-4 mb-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Star className="w-4 h-4 text-yellow-400" />
-                          <span className="font-semibold text-[#313131] dark:text-white">{review.rating} estrelas</span>
-                          <span className="text-xs text-[#313131]/60 dark:text-white/60 ml-2">
-                            {review.ratedAt ? new Date(review.ratedAt).toLocaleDateString("pt-BR") : ""}
-                          </span>
-                        </div>
-                        <div className="text-sm text-[#313131]/80 dark:text-white/80 mb-1">
-                          <span className="font-medium">{review.serviceName}</span>
-                          {review.professionalName && (
-                            <> com <span className="font-medium">{review.professionalName}</span></>
-                          )}
-                        </div>
-                        {review.review && (
-                          <div className="text-[#313131]/70 dark:text-white/70 text-sm italic">"{review.review}"</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AtividadeTab />
           </TabsContent>
 
           {/* Logout Tab */}
