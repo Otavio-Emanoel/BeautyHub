@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { User, Camera, MapPin, Phone, Mail, Instagram, LogOut, Plus, Badge, Edit, Trash2, Clock, DollarSign, Award, FileText, Scissors, Star } from "lucide-react"
+import { User, Camera, MapPin, Phone, Mail, Instagram, LogOut, Plus, Badge, Edit, Trash2, Clock, DollarSign, Award, FileText, Scissors, Star, Eye } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -289,7 +289,7 @@ function ProfileSection() {
 
 // Gerenciamento de Serviços
 function ServicesSection() {
-
+  const router = useRouter()
   const [services, setServices] = useState<any[]>([])
   const [loadingServices, setLoadingServices] = useState(true)
   const [editingService, setEditingService] = useState<any | null>(null)
@@ -301,6 +301,7 @@ function ServicesSection() {
     duration: 60,
     price: 0,
     description: "",
+    image: "",
   })
 
   // Buscar serviços do profissional
@@ -361,7 +362,7 @@ function ServicesSection() {
         body: JSON.stringify(newService),
       })
       if (!res.ok) throw new Error("Erro ao adicionar serviço")
-      setNewService({ name: "", category: "", duration: 60, price: 0, description: "" })
+      setNewService({ name: "", category: "", duration: 60, price: 0, description: "", image: "" })
       // Atualiza lista
       const data = await res.json()
       setServices((prev) => [...prev, { ...newService, id: data.serviceId }])
@@ -471,6 +472,15 @@ function ServicesSection() {
                       onChange={(e) => setNewService({ ...newService, description: e.target.value })}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceImage" className="dark:text-white">Link da foto do serviço</Label>
+                    <Input
+                      id="serviceImage"
+                      placeholder="https://exemplo.com/sua-foto.jpg"
+                      value={newService.image}
+                      onChange={(e) => setNewService({ ...newService, image: e.target.value })}
+                    />
+                  </div>
                   <Button
                     className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FF5C8A]/90 text-white"
                     onClick={handleAddService}
@@ -553,6 +563,13 @@ function ServicesSection() {
                                 onChange={(e) => setEditingService((prev: any) => ({ ...prev, description: e.target.value }))}
                               />
                             </div>
+                            <div className="space-y-2">
+                              <Label>Link da foto do serviço</Label>
+                              <Input
+                                value={editingService?.image || ""}
+                                onChange={(e) => setEditingService((prev: any) => ({ ...prev, image: e.target.value }))}
+                              />
+                            </div>
                             <Button
                               className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] text-white"
                               onClick={handleEditService}
@@ -587,20 +604,38 @@ function ServicesSection() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      {/* Botão para ver página pública do serviço */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-1 border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                        onClick={() => router.push(`/service/${service.id}`)}
+                        title="Ver página do serviço"
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Ver página
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-3">{service.description}</p>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4 text-sm text-[#313131]/70 dark:text-white/70">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {service.duration} min
-                      </div>
-                      <div className="flex items-center">
-                        <DollarSign className="w-4 h-4 mr-1" />
-                        R$ {service.price}
+                  <div className="flex items-center gap-4 mb-3">
+                    <img
+                      src={service.image || "/placeholder.svg"}
+                      alt={service.name}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <div>
+                      <p className="text-sm text-[#313131]/70 dark:text-white/70 mb-1">{service.description}</p>
+                      <div className="flex items-center space-x-4 text-sm text-[#313131]/70 dark:text-white/70">
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1" />
+                          {service.duration} min
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="w-4 h-4 mr-1" />
+                          R$ {service.price}
+                        </div>
                       </div>
                     </div>
                   </div>

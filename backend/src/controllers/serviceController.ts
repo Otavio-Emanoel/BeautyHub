@@ -67,3 +67,33 @@ export async function deleteService(req: Request, res: Response) {
         return res.status(400).json({ error: "Erro ao deletar serviço", details: error.message });
     }
 }
+
+// Buscar Serviço
+export async function getServiceWithReviews(req: Request, res: Response) {
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: "ID do serviço não fornecido" });
+
+  try {
+    const serviceDoc = await admin.firestore().collection('services').doc(id).get();
+    if (!serviceDoc.exists) return res.status(404).json({ error: "Serviço não encontrado" });
+    const service = { id: serviceDoc.id, ...serviceDoc.data() };
+
+    // Busca avaliações desse serviço
+    const reviewsSnap = await admin.firestore()
+      .collection('appointments')
+      .where('serviceId', '==', id)
+      .where('rating', '>=', 1)
+      .orderBy('rating', 'desc')
+      .orderBy('ratedAt', 'desc')
+      .get();
+
+    const reviews = reviewsSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.status(200).json({ service, reviews });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar serviço", details: error.message });
+  }
+}

@@ -11,6 +11,7 @@ import professionalRoutes from './routes/professionalRoutes';
 import scheduleRoutes from './routes/scheduleRoutes';
 import salonRoutes from './routes/salonRoutes';
 import authRoutes from './routes/authRoutes';
+import serviceRoutes from './routes/serviceRoutes';
 
 const app: Application = express();
 
@@ -35,6 +36,9 @@ app.use('/api/auth', authRoutes);
 
 // Rota para agendamentos
 app.use('/api/schedules', scheduleRoutes);
+
+// Rota para serviços
+app.use('/api/services', serviceRoutes);
 
 // Rota padrão para checar se servidor está rodando
 app.get('/', (req: Request, res: Response) => {
