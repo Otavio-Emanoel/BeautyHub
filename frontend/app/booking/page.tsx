@@ -4,46 +4,53 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar as CalendarIcon, Clock, User, Scissors, MapPin, MessageSquare, CheckCircle } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { User, Scissors, CalendarIcon } from "lucide-react"
 
 export default function BookingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const salonId = searchParams.get("salonId") // Exemplo: /booking?salonId=abc123
+  const salonId = searchParams.get("salonId")
+  const serviceId = searchParams.get("serviceId")
+  const professionalId = searchParams.get("professionalId")
 
   const [services, setServices] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [selectedTime, setSelectedTime] = useState("")
   const [selectedService, setSelectedService] = useState<any>(null)
   const [selectedProfessional, setSelectedProfessional] = useState<any>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedTime, setSelectedTime] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(true)
 
-  // Horários disponíveis (mock)
-  const timeSlots = [
-    "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"
-  ]
-
-  // Buscar serviços e profissionais do salão
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
       try {
-        // Se não tiver salonId, redireciona ou mostra erro
-        if (!salonId) {
-          alert("Salão não selecionado!")
-          router.push("/salons")
-          return
+        if (salonId) {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/salons/${salonId}`)
+          const data = await res.json()
+          setServices(data.services || [])
+          setProfessionals(data.professionals || [])
+        } else {
+          if (!serviceId || !professionalId) {
+            alert("Serviço ou profissional não selecionado!")
+            router.push("/services")
+            return
+          }
+          const [serviceRes, profRes] = await Promise.all([
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services-public?serviceId=${serviceId}`),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/public-profile/${professionalId}`)
+          ])
+          const serviceData = await serviceRes.json()
+          const profData = await profRes.json()
+          setServices(serviceData.services ? [serviceData.services[0]] : [])
+          setProfessionals(profData.profile ? [{ ...profData.profile, id: profData.profile.uid || professionalId }] : [])
+          setSelectedService(serviceData.services ? serviceData.services[0] : null)
+          setSelectedProfessional(profData.profile ? { ...profData.profile, id: profData.profile.uid || professionalId } : null)
         }
-        // Busca dados do salão
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/salons/${salonId}`)
-        const data = await res.json()
-        setServices(data.services || [])
-        setProfessionals(data.professionals || [])
       } catch (e) {
         setServices([])
         setProfessionals([])
@@ -52,238 +59,237 @@ export default function BookingPage() {
       }
     }
     fetchData()
-  }, [salonId, router])
+    // eslint-disable-next-line
+  }, [salonId, serviceId, professionalId, router])
 
-  // Função para agendar
+  useEffect(() => {
+    if (!selectedProfessional && professionals.length === 1) {
+      setSelectedProfessional(professionals[0])
+    }
+  }, [professionals, selectedProfessional])
+
+  // Gera horários disponíveis (exemplo fixo: 09:00 às 18:00, de 30 em 30 min)
+  function getAvailableTimes() {
+    const times: string[] = []
+    for (let h = 9; h < 18; h++) {
+      times.push(`${h.toString().padStart(2, "0")}:00`)
+      times.push(`${h.toString().padStart(2, "0")}:30`)
+    }
+    times.push("18:00")
+    return times
+  }
+
   const handleBooking = async () => {
-  // Verifica se está logado
-  const token = localStorage.getItem("token")
-  if (!token) {
-    alert("Você precisa estar logado para agendar!")
-    router.push("/auth/login")
-    return
-  }
+    const token = localStorage.getItem("token")
+    if (!token) {
+      alert("Você precisa estar logado para agendar!")
+      router.push("/auth/login")
+      return
+    }
 
-  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
-    alert("Preencha todos os campos!")
-    return
-  }
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        salonId,
+    if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+      alert("Preencha todos os campos!")
+      return
+    }
+    try {
+      const body: any = {
         serviceId: selectedService.id,
-        professionalId: selectedProfessional.id,
+        professionalId: selectedProfessional.id || professionalId,
         date: selectedDate.toISOString().split("T")[0],
         time: selectedTime,
         note: notes,
-      }),
-    })
-    if (!res.ok) throw new Error("Erro ao agendar")
-    alert("Agendamento realizado com sucesso!")
-    router.push("/appoint")
-  } catch (e) {
-    alert("Erro ao agendar")
+      }
+      if (salonId) body.salonId = salonId
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error("Erro ao agendar")
+      alert("Agendamento realizado com sucesso!")
+      router.push("/appoint")
+    } catch (e) {
+      alert("Erro ao agendar")
+    }
   }
-}
 
-  if (loading) return <div className="p-6">Carregando...</div>
+  if (loading) return <div className="p-6 text-[#313131] dark:text-white">Carregando...</div>
 
   return (
-    <div className="min-h-screen bg-[#EFEFEF] p-6">
+    <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#313131] mb-2">Agendar Serviço</h1>
-          <p className="text-[#313131]/70">Escolha o serviço, profissional e horário desejado</p>
+          <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Agendar Serviço</h1>
+          <p className="text-[#313131]/70 dark:text-white/70">Escolha o serviço, profissional e horário desejado</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Booking Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Service Selection */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-[#313131]">
-                  <Scissors className="w-5 h-5 mr-2 text-[#FF96B2]" />
-                  Escolha o Serviço
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {services.map((service) => (
-                    <div
-                      key={service.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedService?.id === service.id
-                          ? "border-[#FF96B2] bg-[#FF96B2]/10"
-                          : "border-[#EFEFEF] hover:border-[#FF96B2]/50"
-                      }`}
-                      onClick={() => setSelectedService(service)}
-                    >
-                      <h3 className="font-medium text-[#313131]">{service.name}</h3>
-                      <div className="flex justify-between items-center mt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {service.duration} min
-                        </Badge>
-                        <span className="font-semibold text-[#FF96B2]">R$ {service.price}</span>
-                      </div>
-                    </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Serviço */}
+          <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+            <CardHeader>
+              <CardTitle className="flex items-center text-[#313131] dark:text-white">
+                <Scissors className="w-5 h-5 mr-2 text-[#FF96B2]" />
+                Serviço
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={selectedService?.id || ""}
+                onValueChange={id => {
+                  const s = services.find(s => s.id === id)
+                  setSelectedService(s)
+                }}
+                disabled={!!serviceId}
+              >
+                <SelectTrigger className="mb-4 border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
+                  <SelectValue placeholder="Selecione o serviço" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+                  {services.map(service => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} - R$ {service.price}
+                    </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              {selectedService && (
+                <div className="mb-2 text-[#313131] dark:text-white/80">
+                  <p className="mb-1"><strong>Descrição:</strong> {selectedService.description}</p>
+                  <p className="mb-1"><strong>Duração:</strong> {selectedService.duration} min</p>
+                  <p className="mb-1"><strong>Categoria:</strong> {selectedService.category}</p>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Professional Selection */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-[#313131]">
-                  <User className="w-5 h-5 mr-2 text-[#FF96B2]" />
-                  Escolha o Profissional
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {professionals.map((professional) => (
-                    <div
-                      key={professional.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        selectedProfessional?.id === professional.id
-                          ? "border-[#FF96B2] bg-[#FF96B2]/10"
-                          : "border-[#EFEFEF] hover:border-[#FF96B2]/50"
-                      }`}
-                      onClick={() => setSelectedProfessional(professional)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium text-[#313131]">{professional.name}</h3>
-                          <p className="text-sm text-[#313131]/70">{professional.specialty}</p>
-                        </div>
-                        <Badge className="bg-[#FF96B2] text-white">⭐ {professional.rating || "5.0"}</Badge>
-                      </div>
-                    </div>
+          {/* Profissional */}
+          <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+            <CardHeader>
+              <CardTitle className="flex items-center text-[#313131] dark:text-white">
+                <User className="w-5 h-5 mr-2 text-[#FF96B2]" />
+                Profissional
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={selectedProfessional?.id || ""}
+                onValueChange={id => {
+                  const p = professionals.find(p => p.id === id || p.uid === id)
+                  setSelectedProfessional(p)
+                }}
+                disabled={!!professionalId || professionals.length === 1}
+              >
+                <SelectTrigger className="mb-4 border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white">
+                  <SelectValue placeholder="Selecione o profissional" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+                  {professionals.map(prof => (
+                    <SelectItem key={prof.id || prof.uid} value={prof.id || prof.uid}>
+                      {prof.name}
+                    </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              {selectedProfessional && (
+                <div className="mb-2 text-[#313131] dark:text-white/80">
+                  <p className="mb-1"><strong>Experiência:</strong> {selectedProfessional.experience}</p>
+                  <p className="mb-1"><strong>Localização:</strong> {selectedProfessional.location}</p>
+                  {selectedProfessional.phone && (
+                    <p className="mb-1 flex items-center">
+                      <MessageSquare className="w-4 h-4 mr-1 text-green-500" />
+                      <a
+                        href={`https://wa.me/55${(selectedProfessional.phone || "").replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        WhatsApp
+                      </a>
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Date and Time Selection */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-[#313131]">
-                  <CalendarIcon className="w-5 h-5 mr-2 text-[#FF96B2]" />
-                  Data e Horário
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-medium text-[#313131] mb-3">Escolha a data</h3>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border border-[#EFEFEF]"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-[#313131] mb-3">Horários disponíveis</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {timeSlots.map((time) => (
-                        <Button
-                          key={time}
-                          variant={selectedTime === time ? "default" : "outline"}
-                          size="sm"
-                          className={
-                            selectedTime === time
-                              ? "bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
-                              : "border-[#EFEFEF] text-[#313131] hover:border-[#FF96B2] hover:text-[#FF96B2]"
-                          }
-                          onClick={() => setSelectedTime(time)}
-                        >
-                          {time}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Data e horários disponíveis */}
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+            <CardHeader>
+              <CardTitle className="flex items-center text-[#313131] dark:text-white">
+                <CalendarIcon className="w-5 h-5 mr-2 text-[#FF96B2]" />
+                Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border"
+                fromDate={new Date()}
+              />
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
+            <CardHeader>
+              <CardTitle className="flex items-center text-[#313131] dark:text-white">
+                <Clock className="w-5 h-5 mr-2 text-[#FF96B2]" />
+                Horário Disponível
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                {getAvailableTimes().map((time) => (
+                  <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    className={
+                      selectedTime === time
+                        ? "bg-[#FF96B2] text-white"
+                        : "border-[#FF96B2] text-[#FF96B2] dark:border-[#FF96B2] dark:text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                    }
+                    onClick={() => setSelectedTime(time)}
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Additional Notes */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-[#313131]">Observações (Opcional)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Alguma observação especial para o seu agendamento..."
-                  className="border-[#EFEFEF] focus:border-[#FF96B2]"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </CardContent>
-            </Card>
-          </div>
+        {/* Observações */}
+        <Card className="border-0 shadow-lg bg-white dark:bg-[#232326] mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center text-[#313131] dark:text-white">
+              <MapPin className="w-5 h-5 mr-2 text-[#FF96B2]" />
+              Observações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input
+              placeholder="Observações para o profissional (opcional)"
+              className="mb-4 border-[#EFEFEF] dark:border-[#232326] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+            />
+          </CardContent>
+        </Card>
 
-          {/* Booking Summary */}
-          <div>
-            <Card className="border-0 shadow-lg sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-[#313131]">Resumo do Agendamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {selectedService && (
-                  <div className="flex justify-between">
-                    <span className="text-[#313131]/70">Serviço:</span>
-                    <span className="font-medium text-[#313131]">{selectedService.name}</span>
-                  </div>
-                )}
-
-                {selectedProfessional && (
-                  <div className="flex justify-between">
-                    <span className="text-[#313131]/70">Profissional:</span>
-                    <span className="font-medium text-[#313131]">{selectedProfessional.name}</span>
-                  </div>
-                )}
-
-                {selectedDate && (
-                  <div className="flex justify-between">
-                    <span className="text-[#313131]/70">Data:</span>
-                    <span className="font-medium text-[#313131]">{selectedDate.toLocaleDateString("pt-BR")}</span>
-                  </div>
-                )}
-
-                {selectedTime && (
-                  <div className="flex justify-between">
-                    <span className="text-[#313131]/70">Horário:</span>
-                    <span className="font-medium text-[#313131]">{selectedTime}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-[#EFEFEF] pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-[#313131]">Total:</span>
-                    <span className="text-xl font-bold text-[#FF96B2]">
-                      {selectedService ? `R$ ${selectedService.price}` : "R$ 0"}
-                    </span>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
-                  onClick={handleBooking}
-                  disabled={!selectedService || !selectedProfessional || !selectedDate || !selectedTime}
-                >
-                  Confirmar Agendamento
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="mt-8 flex justify-end">
+          <Button
+            className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#FF96B2] dark:hover:bg-[#be185d] dark:text-white"
+            size="lg"
+            onClick={handleBooking}
+          >
+            <CheckCircle className="w-5 h-5 mr-2" />
+            Confirmar Agendamento
+          </Button>
         </div>
       </div>
     </div>

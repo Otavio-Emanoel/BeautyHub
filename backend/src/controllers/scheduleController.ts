@@ -5,7 +5,7 @@ export async function createAppointment(req: Request, res: Response ) {
     const { salonId, professionalId, serviceId, date, time, note } = req.body;
     const clientId = req.users?.uid;
     
-    if (!salonId || !professionalId || !serviceId || !date || !time) {
+    if (!professionalId || !serviceId || !date || !time) {
         return res.status(400).json({ error: "Todos os campos são obrigatórios" });
     }
 
@@ -15,40 +15,44 @@ export async function createAppointment(req: Request, res: Response ) {
         if (!serviceDoc.exists) return res.status(404).json({ error: "Serviço não encontrado" });
         const service = serviceDoc.data();
 
-        // Busca dados do salão
-        const salonDoc = await admin.firestore().collection('salons').doc(salonId).get();
-        if (!salonDoc.exists) return res.status(404).json({ error: "Salão não encontrado" });
-        const salon = salonDoc.data();
+        // Se for agendamento de salão, busca dados do salão
+        let salon = null;
+        if (salonId) {
+            const salonDoc = await admin.firestore().collection('salons').doc(salonId).get();
+            if (!salonDoc.exists) return res.status(404).json({ error: "Salão não encontrado" });
+            salon = salonDoc.data();
+        }
 
         // Busca dados do profissional
         const professionalDoc = await admin.firestore().collection('professionals').doc(professionalId).get();
         if (!professionalDoc.exists) return res.status(404).json({ error: "Profissional não encontrado" });
         const professional = professionalDoc.data();
 
-        // Busca dados do cliente (opcional, para salvar nome do cliente)
-        // const clientDoc = await admin.firestore().collection('users').doc(clientId).get();
-        // const client = clientDoc.exists ? clientDoc.data() : {};
-
-        const appointmentData = {
-            salonId,
-            salonName: salon?.name || "",
-            salonAddress: salon?.address || "",
-            salonPhone: salon?.phone || "",
+        const appointmentData: any = {
             professionalId,
             professionalName: professional?.name || "",
             professionalAvatar: professional?.avatar || "",
+            professionalPhone: professional?.phone || "",
+            professionalLocation: professional?.location || "",
             serviceId,
             serviceName: service?.name || "",
             servicePrice: service?.price || 0,
             serviceDuration: service?.duration || "",
             clientId,
-            // clientName: client?.name || "",
             date,
             time,
             note,
             status: 'pending',
             createdAt: new Date().toISOString()
         };
+
+        // Só adiciona dados do salão se for agendamento de salão
+        if (salonId && salon) {
+            appointmentData.salonId = salonId;
+            appointmentData.salonName = salon?.name || "";
+            appointmentData.salonAddress = salon?.address || "";
+            appointmentData.salonPhone = salon?.phone || "";
+        }
 
         const appointmentRef = await admin.firestore().collection('appointments').add(appointmentData);
 
@@ -227,7 +231,11 @@ export async function updateAppointmentStatus(req: Request, res: Response) {
 
         const appointment = appointmentDoc.data();
 
-        if (appointment?.professionalId !== userId) {
+        // Permite que o profissional OU o cliente alterem o status
+        if (
+            appointment?.professionalId !== userId &&
+            appointment?.clientId !== userId
+        ) {
             return res.status(403).json({ error: "Você não tem permissão para alterar este agendamento" });
         }
 

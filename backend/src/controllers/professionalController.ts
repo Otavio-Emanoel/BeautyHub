@@ -425,3 +425,17 @@ export async function deletePortfolioItem(req: Request, res: Response) {
     return res.status(400).json({ error: "Erro ao excluir item", details: error.message });
   }
 }
+
+// Rota para obter o perfil público de um profissional
+export async function getPublicProfessionalProfile(req: Request, res: Response) {
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: "ID não informado" });
+  try {
+    const doc = await admin.firestore().collection("professionals").doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: "Profissional não encontrado" });
+    const data = doc.data();
+    res.status(200).json({ profile: { ...data, uid: id } });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar perfil público", details: error.message });
+  }
+}

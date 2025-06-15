@@ -222,8 +222,7 @@ export default function ServicesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-[#FF96B2] dark:border-pink-600 text-[#FF96B2] dark:text-pink-400 hover:bg-[#FF96B2] dark:hover:bg-pink-600 hover:text-white"
-                      onClick={() => window.location.href = `/about-me?id=${item.professional?.id}`}
+                      onClick={() => window.location.href = `/professional/${item.professional?.id || item.professionalId}`}
                     >
                       Ver perfil
                     </Button>
