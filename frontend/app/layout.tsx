@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "BeautyHub",
   description: "Plataforma de agendamento de salões de beleza",
   icons: {
-    icon: "/favicon.ico", 
+    icon: "/favicon.png", 
   },
 }
 
