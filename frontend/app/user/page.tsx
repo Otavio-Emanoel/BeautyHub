@@ -12,6 +12,8 @@ import { User, Mail, Phone, MapPin, Camera, Shield, LogOut } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 import { Textarea } from "@/components/ui/textarea"
+import { Star } from "lucide-react"
+
 
 export default function AccountPage() {
   const [profileData, setProfileData] = useState<any>({
@@ -62,6 +64,28 @@ export default function AccountPage() {
     }
     fetchProfileData()
   }, [router])
+
+  const [reviews, setReviews] = useState<any[]>([])
+  const [loadingReviews, setLoadingReviews] = useState(true)
+
+  useEffect(() => {
+    async function fetchReviews() {
+      setLoadingReviews(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/client/reviews`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setReviews(data.reviews || [])
+      } catch {
+        setReviews([])
+      } finally {
+        setLoadingReviews(false)
+      }
+    }
+    fetchReviews()
+  }, [])
 
   // Upload profile picture 
   const [uploading, setUploading] = useState(false);
@@ -328,13 +352,42 @@ export default function AccountPage() {
           <TabsContent value="activity">
             <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
               <CardHeader>
-                <CardTitle className="text-[#313131] dark:text-white">Atividade</CardTitle>
+                <CardTitle className="text-[#313131] dark:text-white">Minhas Avaliações</CardTitle>
                 <CardDescription className="dark:text-white/70">
-                  Aqui você poderá visualizar seu histórico de atividades futuramente.
+                  Veja as avaliações que você fez em serviços realizados.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-[#313131]/70 dark:text-white/70">Funcionalidade em breve.</p>
+                {loadingReviews ? (
+                  <div className="py-8 text-center">Carregando avaliações...</div>
+                ) : reviews.length === 0 ? (
+                  <div className="py-8 text-center text-[#313131]/70 dark:text-white/70">
+                    Você ainda não avaliou nenhum serviço.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border-b border-[#EFEFEF] dark:border-[#232326] pb-4 mb-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Star className="w-4 h-4 text-yellow-400" />
+                          <span className="font-semibold text-[#313131] dark:text-white">{review.rating} estrelas</span>
+                          <span className="text-xs text-[#313131]/60 dark:text-white/60 ml-2">
+                            {review.ratedAt ? new Date(review.ratedAt).toLocaleDateString("pt-BR") : ""}
+                          </span>
+                        </div>
+                        <div className="text-sm text-[#313131]/80 dark:text-white/80 mb-1">
+                          <span className="font-medium">{review.serviceName}</span>
+                          {review.professionalName && (
+                            <> com <span className="font-medium">{review.professionalName}</span></>
+                          )}
+                        </div>
+                        {review.review && (
+                          <div className="text-[#313131]/70 dark:text-white/70 text-sm italic">"{review.review}"</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

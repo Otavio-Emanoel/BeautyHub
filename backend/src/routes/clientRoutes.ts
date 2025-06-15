@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {registerClient, loginClient, updateClientProfile, getClientProfile, uploadProfilePicture} from '../controllers/clientController';
+import {registerClient, loginClient, updateClientProfile, getClientProfile, uploadProfilePicture, listClientReviews} from '../controllers/clientController';
 import {authenticateToken} from '../middlewares/authMiddleware';
 import multer from "multer";
 
@@ -21,5 +21,8 @@ router.get('/profile', authenticateToken, getClientProfile);
 
 // Rota de upload de foto de perfil
 router.post('/profile/photo', authenticateToken, upload.single('photo'), uploadProfilePicture);
+
+// Rota para listar avaliações do cliente
+router.get('/reviews', authenticateToken, listClientReviews);
 
 export default router;

@@ -134,6 +134,22 @@ export default function ProfessionalAppointmentsPage() {
     }
   }
 
+  const handleFinish = async (appointmentId: string) => {
+  const token = localStorage.getItem("token")
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/finish`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error("Erro ao concluir agendamento")
+    setAppointments((prev) =>
+      prev.map((a) => a.id === appointmentId ? { ...a, status: "completed" } : a)
+    )
+  } catch (e) {
+    alert("Erro ao concluir agendamento")
+  }
+}
+
   const handleAddNotes = async (appointmentId: string, notes: string) => {
     const token = localStorage.getItem("token")
     try {
@@ -174,6 +190,26 @@ export default function ProfessionalAppointmentsPage() {
       return d.toDateString() === now.toDateString()
     }).length,
     newAppointments: appointments.filter(a => getIsNewClient(a) && a.status === "pending").length,
+  }
+
+  function renderAddress(appointment: any) {
+    if (appointment.salonAddress) {
+      return (
+        <div className="flex items-center gap-2 mt-1 text-sm text-[#313131]/80 dark:text-white/80">
+          <MapPin className="w-4 h-4 text-[#FF96B2]" />
+          <span>{appointment.salonAddress}</span>
+        </div>
+      )
+    }
+    if (appointment.professionalLocation) {
+      return (
+        <div className="flex items-center gap-2 mt-1 text-sm text-[#313131]/80 dark:text-white/80">
+          <MapPin className="w-4 h-4 text-[#FF96B2]" />
+          <span>{appointment.professionalLocation}</span>
+        </div>
+      )
+    }
+    return null
   }
 
   const getStatusBadge = (status: string) => {
@@ -461,10 +497,7 @@ export default function ProfessionalAppointmentsPage() {
                       <Clock className="w-4 h-4 mr-2" />
                       {appointment.time} • {getServiceDuration(appointment)} min
                     </div>
-                    <div className="flex items-center text-[#313131]/70 dark:text-white/60">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {getLocation(appointment)}
-                    </div>
+
                     <div className="text-right">
                       <span className="text-lg font-bold text-[#FF96B2] dark:text-[#FFB6D5]">R$ {getPrice(appointment)}</span>
                     </div>
@@ -547,6 +580,16 @@ export default function ProfessionalAppointmentsPage() {
                       >
                         <Check className="w-4 h-4 mr-2" />
                         Confirmar
+                      </Button>
+                    )}
+                    {appointment.status === "confirmed" && (
+                      <Button
+                        size="sm"
+                        className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white"
+                        onClick={() => handleFinish(appointment.id)}
+                      >
+                        <Check className="w-4 h-4 mr-2" />
+                        Concluir
                       </Button>
                     )}
                   </div>

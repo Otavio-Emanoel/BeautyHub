@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, MapPin, Phone, MessageSquare, RotateCcw, User, Scissors, Building2, X, Check, Clock } from "lucide-react"
+import { Calendar, MapPin, Phone, MessageSquare, RotateCcw, User, Scissors, Building2, X, Check, Star } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ""
@@ -58,6 +60,12 @@ export default function AppointmentsPage() {
   const [newDate, setNewDate] = useState("")
   const [newTime, setNewTime] = useState("")
   const [rescheduling, setRescheduling] = useState(false)
+
+  // Avaliação
+  const [rateModal, setRateModal] = useState<{ open: boolean, appointment: any | null }>({ open: false, appointment: null })
+  const [rateValue, setRateValue] = useState(5)
+  const [rateComment, setRateComment] = useState("")
+  const [ratingLoading, setRatingLoading] = useState(false)
 
   useEffect(() => {
     async function fetchAppointments() {
@@ -185,6 +193,45 @@ export default function AppointmentsPage() {
     }
   }
 
+  // Modal de avaliação
+  function openRateModal(appointment: any) {
+    setRateModal({ open: true, appointment })
+    setRateValue(5)
+    setRateComment("")
+  }
+
+  async function handleRate() {
+    if (!rateValue) {
+      alert("Escolha uma nota!")
+      return
+    }
+    setRatingLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${rateModal.appointment.id}/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: rateValue, review: rateComment }),
+      })
+      if (!res.ok) throw new Error("Erro ao enviar avaliação")
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === rateModal.appointment.id
+            ? { ...a, rating: rateValue, review: rateComment }
+            : a
+        )
+      )
+      setRateModal({ open: false, appointment: null })
+    } catch (e) {
+      alert("Erro ao enviar avaliação")
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
   function renderStatusBadge(status: string) {
     return (
       <span
@@ -224,7 +271,7 @@ export default function AppointmentsPage() {
           <div className="flex flex-col items-end gap-1">
             {renderStatusBadge(appointment.status)}
             <span className="text-xs text-[#313131]/70 dark:text-white/70">
-              {new Date(appointment.date).toLocaleDateString("pt-BR")} às {appointment.time}
+              {formatDate(appointment.date)} às {appointment.time}
             </span>
           </div>
         </CardHeader>
@@ -285,6 +332,15 @@ export default function AppointmentsPage() {
                     onClick={() => router.push(`/professional/${appointment.professionalId}`)}
                   >
                     Ver perfil
+                  </Button>
+                )}
+                {appointment.status === "completed" && !appointment.rating && (
+                  <Button
+                    size="sm"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    onClick={() => openRateModal(appointment)}
+                  >
+                    Avaliar
                   </Button>
                 )}
                 <Button
@@ -404,6 +460,64 @@ export default function AppointmentsPage() {
                 >
                   <Check className="w-4 h-4 mr-2" />
                   Salvar Reagendamento
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de avaliação */}
+        <Dialog open={rateModal.open} onOpenChange={(open) => !open && setRateModal({ open: false, appointment: null })}>
+          <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-[#313131] dark:text-white">Avaliar Atendimento</DialogTitle>
+              <DialogDescription className="dark:text-white/60">
+                Dê uma nota e deixe um comentário sobre o serviço recebido.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-1 text-sm dark:text-white">Nota</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`p-1 ${rateValue >= star ? "text-yellow-400" : "text-gray-400"}`}
+                      onClick={() => setRateValue(star)}
+                    >
+                      <Star className="w-6 h-6" fill={rateValue >= star ? "#facc15" : "none"} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm dark:text-white">Comentário</label>
+                <Textarea
+                  value={rateComment}
+                  onChange={(e) => setRateComment(e.target.value)}
+                  placeholder="Deixe seu comentário (opcional)"
+                  className="border-[#FF96B2] dark:border-[#FF96B2] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  className="border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+                  onClick={() => setRateModal({ open: false, appointment: null })}
+                  disabled={ratingLoading}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button
+                  className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                  onClick={handleRate}
+                  disabled={ratingLoading}
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Enviar Avaliação
                 </Button>
               </div>
             </div>

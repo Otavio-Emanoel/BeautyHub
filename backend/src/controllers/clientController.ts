@@ -79,3 +79,28 @@ export async function uploadProfilePicture(req: any, res: any) {
 
   return res.json({ avatar: url });
 }
+
+// Lista as avaliações feitas pelo cliente
+export async function listClientReviews(req: Request, res: Response) {
+  const clientId = req.users?.uid;
+  if (!clientId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    const snapshot = await admin.firestore()
+      .collection('appointments')
+      .where('clientId', '==', clientId)
+      .where('rating', '>=', 1)
+      .orderBy('rating', 'desc')
+      .orderBy('ratedAt', 'desc')
+      .get();
+
+    const reviews = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.status(200).json({ reviews });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar avaliações", details: error.message });
+  }
+}
