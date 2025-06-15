@@ -135,20 +135,20 @@ export default function ProfessionalAppointmentsPage() {
   }
 
   const handleFinish = async (appointmentId: string) => {
-  const token = localStorage.getItem("token")
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/finish`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) throw new Error("Erro ao concluir agendamento")
-    setAppointments((prev) =>
-      prev.map((a) => a.id === appointmentId ? { ...a, status: "completed" } : a)
-    )
-  } catch (e) {
-    alert("Erro ao concluir agendamento")
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/finish`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao concluir agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "completed" } : a)
+      )
+    } catch (e) {
+      alert("Erro ao concluir agendamento")
+    }
   }
-}
 
   const handleAddNotes = async (appointmentId: string, notes: string) => {
     const token = localStorage.getItem("token")
@@ -171,45 +171,74 @@ export default function ProfessionalAppointmentsPage() {
     }
   }
 
+  // Corrigido: sempre use data e hora juntos para evitar erro de fuso
+  const getAppointmentDateObj = (appointment: any) => {
+    if (appointment.date && appointment.time) {
+      return new Date(`${appointment.date}T${appointment.time}`)
+    }
+    if (appointment.date) {
+      return new Date(appointment.date)
+    }
+    return new Date()
+  }
+
   const stats = {
     thisWeek: appointments.filter(a => {
-      const d = new Date(a.date)
+      const d = getAppointmentDateObj(a)
       const now = new Date()
       const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
       return d >= now && d <= weekFromNow
     }).length,
     thisMonth: appointments.filter(a => {
-      const d = new Date(a.date)
+      const d = getAppointmentDateObj(a)
       const now = new Date()
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     }).length,
     attendanceRate: 92, // Exemplo fixo
     todayAppointments: appointments.filter(a => {
-      const d = new Date(a.date)
+      const d = getAppointmentDateObj(a)
       const now = new Date()
       return d.toDateString() === now.toDateString()
     }).length,
     newAppointments: appointments.filter(a => getIsNewClient(a) && a.status === "pending").length,
   }
 
-  function renderAddress(appointment: any) {
-    if (appointment.salonAddress) {
-      return (
-        <div className="flex items-center gap-2 mt-1 text-sm text-[#313131]/80 dark:text-white/80">
-          <MapPin className="w-4 h-4 text-[#FF96B2]" />
-          <span>{appointment.salonAddress}</span>
-        </div>
-      )
+  // Filtros
+  const filteredAppointments = appointments.filter((appointment) => {
+    const matchesSearch = getClientName(appointment).toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter
+    const matchesService = serviceFilter === "all" || getServiceName(appointment).includes(serviceFilter)
+
+    let matchesDate = true
+    if (dateFilter === "today") {
+      const d = getAppointmentDateObj(appointment)
+      const now = new Date()
+      matchesDate = d.toDateString() === now.toDateString()
+    } else if (dateFilter === "week") {
+      const d = getAppointmentDateObj(appointment)
+      const now = new Date()
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      matchesDate = d >= now && d <= weekFromNow
+    } else if (dateFilter === "month") {
+      const d = getAppointmentDateObj(appointment)
+      const now = new Date()
+      matchesDate = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     }
-    if (appointment.professionalLocation) {
-      return (
-        <div className="flex items-center gap-2 mt-1 text-sm text-[#313131]/80 dark:text-white/80">
-          <MapPin className="w-4 h-4 text-[#FF96B2]" />
-          <span>{appointment.professionalLocation}</span>
-        </div>
-      )
-    }
-    return null
+
+    return matchesSearch && matchesStatus && matchesService && matchesDate
+  })
+
+  const todayAppointments = appointments.filter((a) => {
+    const d = getAppointmentDateObj(a)
+    const now = new Date()
+    return d.toDateString() === now.toDateString()
+  })
+  const newAppointments = appointments.filter((a) => getIsNewClient(a) && a.status === "pending")
+
+  const handleWhatsApp = (phone: string, clientName: string) => {
+    const message = `Olá ${clientName}! Aqui é da BeautyBook. Como posso ajudá-la?`
+    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, "_blank")
   }
 
   const getStatusBadge = (status: string) => {
@@ -227,44 +256,6 @@ export default function ProfessionalAppointmentsPage() {
       default:
         return <Badge className="bg-gray-100 text-gray-800">Pendente</Badge>
     }
-  }
-
-  // Filtros
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch = getClientName(appointment).toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter
-    const matchesService = serviceFilter === "all" || getServiceName(appointment).includes(serviceFilter)
-
-    let matchesDate = true
-    if (dateFilter === "today") {
-      const d = new Date(appointment.date)
-      const now = new Date()
-      matchesDate = d.toDateString() === now.toDateString()
-    } else if (dateFilter === "week") {
-      const d = new Date(appointment.date)
-      const now = new Date()
-      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-      matchesDate = d >= now && d <= weekFromNow
-    } else if (dateFilter === "month") {
-      const d = new Date(appointment.date)
-      const now = new Date()
-      matchesDate = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    }
-
-    return matchesSearch && matchesStatus && matchesService && matchesDate
-  })
-
-  const todayAppointments = appointments.filter((a) => {
-    const d = new Date(a.date)
-    const now = new Date()
-    return d.toDateString() === now.toDateString()
-  })
-  const newAppointments = appointments.filter((a) => getIsNewClient(a) && a.status === "pending")
-
-  const handleWhatsApp = (phone: string, clientName: string) => {
-    const message = `Olá ${clientName}! Aqui é da BeautyBook. Como posso ajudá-la?`
-    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
   }
 
   return (
@@ -404,7 +395,6 @@ export default function ProfessionalAppointmentsPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
                   <SelectItem value="all">Todos os serviços</SelectItem>
-                  {/* Opcional: gere dinamicamente as opções de serviço */}
                   {[...new Set(appointments.map(getServiceName))]
                     .filter(Boolean)
                     .map((service, idx) => (
@@ -491,7 +481,7 @@ export default function ProfessionalAppointmentsPage() {
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div className="flex items-center text-[#313131]/70 dark:text-white/60">
                       <CalendarIcon className="w-4 h-4 mr-2" />
-                      {new Date(appointment.date).toLocaleDateString("pt-BR")}
+                      {getAppointmentDateObj(appointment).toLocaleDateString("pt-BR")}
                     </div>
                     <div className="flex items-center text-[#313131]/70 dark:text-white/60">
                       <Clock className="w-4 h-4 mr-2" />

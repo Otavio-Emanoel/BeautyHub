@@ -41,14 +41,18 @@ export default function BookingPage() {
             return
           }
           const [serviceRes, profRes] = await Promise.all([
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services-public?serviceId=${serviceId}`),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/services-public`),
             fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/public-profile/${professionalId}`)
           ])
           const serviceData = await serviceRes.json()
           const profData = await profRes.json()
-          setServices(serviceData.services ? [serviceData.services[0]] : [])
+          let selected = null
+          if (serviceData.services && Array.isArray(serviceData.services)) {
+            selected = (serviceData.services as { id: string }[]).find(s => s.id === serviceId) || null
+          }
+          setServices(selected ? [selected] : [])
+          setSelectedService(selected)
           setProfessionals(profData.profile ? [{ ...profData.profile, id: profData.profile.uid || professionalId }] : [])
-          setSelectedService(serviceData.services ? serviceData.services[0] : null)
           setSelectedProfessional(profData.profile ? { ...profData.profile, id: profData.profile.uid || professionalId } : null)
         }
       } catch (e) {

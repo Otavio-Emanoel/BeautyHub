@@ -156,7 +156,7 @@ export default function ServicesPage() {
               {/* Service Image */}
               <div className="relative h-48 bg-gradient-to-br from-[#FF96B2]/20 to-[#FF96B2]/10 dark:from-pink-600/20 dark:to-pink-600/10">
                 <img
-                  src={item.images?.[0] || "/placeholder.svg"}
+                  src={item.image || "/placeholder.svg"} 
                   alt={item.name}
                   className="w-full h-full object-cover"
                 />
