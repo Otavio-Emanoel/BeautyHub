@@ -9,6 +9,12 @@ import { Calendar, MapPin, Phone, MessageSquare, RotateCcw, User, Scissors, Buil
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 
+function formatDate(dateStr: string) {
+  if (!dateStr) return ""
+  const [year, month, day] = dateStr.split("-")
+  return `${day}/${month}/${year}`
+}
+
 function getStatusLabel(status: string) {
   switch (status) {
     case "pending":
@@ -240,7 +246,7 @@ export default function AppointmentsPage() {
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-4 h-4 text-[#FF96B2]" />
                 <span className="text-sm text-[#313131] dark:text-white">
-                  <strong>Data:</strong> {new Date(appointment.date).toLocaleDateString("pt-BR")}
+                  <strong>Data:</strong> {formatDate(appointment.date)}
                 </span>
                 <span className="ml-2 text-sm text-[#313131] dark:text-white">
                   <strong>Horário:</strong> {appointment.time}
