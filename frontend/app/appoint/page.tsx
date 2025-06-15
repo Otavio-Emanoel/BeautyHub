@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-
 function formatDate(dateStr: string) {
   if (!dateStr) return ""
   const [year, month, day] = dateStr.split("-")
@@ -90,17 +89,15 @@ export default function AppointmentsPage() {
   const now = new Date()
   const upcomingAppointments = appointments.filter((a: any) => {
     const date = new Date(`${a.date}T${a.time}`)
-    return date >= now && a.status !== "cancelled"
+    return date >= now && a.status !== "cancelled" && a.status !== "completed"
   })
   const historyAppointments = appointments.filter((a: any) => {
     const date = new Date(`${a.date}T${a.time}`)
     return date < now || a.status === "cancelled" || a.status === "completed"
   })
 
-  // Lógica para exibir telefone/endereço
   function renderContactInfo(appointment: any) {
     if (appointment.salonId) {
-      // Salão
       return (
         <div className="flex flex-col md:flex-row md:items-center gap-2 mt-3">
           <div className="flex items-center gap-2 bg-[#FF96B2]/10 dark:bg-[#FF96B2]/10 px-3 py-2 rounded-lg">
@@ -122,7 +119,6 @@ export default function AppointmentsPage() {
         </div>
       )
     }
-    // Autônomo
     return (
       <div className="flex flex-col md:flex-row md:items-center gap-2 mt-3">
         {appointment.professionalLocation && (
@@ -154,7 +150,6 @@ export default function AppointmentsPage() {
     )
   }
 
-  // Modal de reagendamento
   function openRescheduleModal(appointment: any) {
     setRescheduleModal({ open: true, appointment })
     setNewDate(appointment.date)
@@ -193,7 +188,6 @@ export default function AppointmentsPage() {
     }
   }
 
-  // Modal de avaliação
   function openRateModal(appointment: any) {
     setRateModal({ open: true, appointment })
     setRateValue(5)
@@ -246,6 +240,34 @@ export default function AppointmentsPage() {
   }
 
   function renderAppointmentCard(appointment: any, isHistory = false) {
+    const appointmentDate = new Date(`${appointment.date}T${appointment.time}`)
+    const now = new Date()
+    const isPast = appointmentDate < now
+    const isPending = appointment.status === "pending"
+    const isRescheduled = appointment.status === "rescheduled"
+    const isCompleted = appointment.status === "completed"
+    const isCancelled = appointment.status === "cancelled"
+
+    // Aviso para pendente e já passou do horário
+    let expiredWarning = null
+    if (isPending && isPast && !isCompleted && !isCancelled) {
+      expiredWarning = (
+        <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded text-xs">
+          O horário deste agendamento já passou e ainda não foi confirmado. Aguarde ou entre em contato com o profissional.
+        </div>
+      )
+    }
+
+    // Aviso para reagendado (apenas notificação)
+    let rescheduleWarning = null
+    if (isRescheduled && !isCompleted && !isCancelled) {
+      rescheduleWarning = (
+        <div className="mb-2 p-2 bg-blue-100 text-blue-800 rounded text-xs">
+          O profissional alterou a data/horário deste agendamento. Aguarde a confirmação.
+        </div>
+      )
+    }
+
     return (
       <Card key={appointment.id} className="border-0 shadow-lg bg-white dark:bg-[#232326] hover:shadow-xl transition-all duration-300">
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
@@ -276,6 +298,8 @@ export default function AppointmentsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {expiredWarning}
+          {rescheduleWarning}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -343,14 +367,17 @@ export default function AppointmentsPage() {
                     Avaliar
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
-                  onClick={() => openRescheduleModal(appointment)}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  {isHistory ? "Agendar Novamente" : "Reagendar"}
-                </Button>
+                {/* Só permite reagendar se não for concluído nem cancelado */}
+                {!isCompleted && !isCancelled && (
+                  <Button
+                    size="sm"
+                    className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                    onClick={() => openRescheduleModal(appointment)}
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    {isHistory ? "Agendar Novamente" : "Reagendar"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

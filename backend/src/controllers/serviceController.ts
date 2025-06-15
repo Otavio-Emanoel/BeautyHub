@@ -97,3 +97,34 @@ export async function getServiceWithReviews(req: Request, res: Response) {
     res.status(400).json({ error: "Erro ao buscar serviço", details: error.message });
   }
 }
+
+// Cancelar agendamentos pendentes vencidos automaticamente
+export async function autoCancelOverdueAppointments(req: Request, res: Response) {
+  try {
+    const now = new Date();
+    const snapshot = await admin.firestore()
+      .collection('appointments')
+      .where('status', '==', 'pending')
+      .get();
+
+    const batch = admin.firestore().batch();
+    let count = 0;
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.date && data.time) {
+        const appointmentDate = new Date(`${data.date}T${data.time}`);
+        const diff = now.getTime() - appointmentDate.getTime();
+        if (diff > 24 * 60 * 60 * 1000) { // passou de 24h
+          batch.update(doc.ref, { status: "cancelled", canceledAt: new Date().toISOString(), autoCancelled: true });
+          count++;
+        }
+      }
+    });
+
+    await batch.commit();
+    res.status(200).json({ message: `Cancelados ${count} agendamentos pendentes vencidos.` });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao cancelar agendamentos vencidos", details: error.message });
+  }
+}

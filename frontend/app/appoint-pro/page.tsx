@@ -21,7 +21,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import {
   CalendarIcon,
   Clock,
-  MapPin,
   Search,
   Filter,
   Phone,
@@ -47,6 +46,11 @@ export default function ProfessionalAppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [rescheduleData, setRescheduleData] = useState<{ id: string, date: string, time: string } | null>(null)
 
+  // Modais de confirmação
+  const [confirmModal, setConfirmModal] = useState<{ open: boolean, appointment: any | null }>({ open: false, appointment: null })
+  const [cancelModal, setCancelModal] = useState<{ open: boolean, appointment: any | null }>({ open: false, appointment: null })
+  const [finishModal, setFinishModal] = useState<{ open: boolean, appointment: any | null }>({ open: false, appointment: null })
+
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true)
@@ -66,17 +70,85 @@ export default function ProfessionalAppointmentsPage() {
     fetchAppointments()
   }, [])
 
-  // Corrige o mapeamento dos dados vindos do backend
-  const getClientName = (appointment: any) => appointment.clientName || appointment.client?.name || "Cliente"
-  const getClientAvatar = (appointment: any) => appointment.clientAvatar || appointment.client?.avatar || "/placeholder.svg"
+  // Helpers
+  const getClientName = (appointment: any) =>
+    appointment.clientName ||
+    appointment.client?.name ||
+    appointment.client?.displayName ||
+    "Cliente"
+
+  const getClientAvatar = (appointment: any) =>
+    appointment.clientAvatar ||
+    appointment.client?.avatar ||
+    appointment.client?.photoURL ||
+    "https://ui-avatars.com/api/?name=" + encodeURIComponent(getClientName(appointment))
+
   const getClientPhone = (appointment: any) => appointment.clientPhone || appointment.client?.phone || ""
   const getServiceName = (appointment: any) => appointment.serviceName || appointment.service || ""
   const getServiceDuration = (appointment: any) => appointment.serviceDuration || appointment.duration || ""
-  const getLocation = (appointment: any) => appointment.salonAddress || appointment.location || ""
   const getPrice = (appointment: any) => appointment.servicePrice || appointment.price || ""
   const getNotes = (appointment: any) => appointment.note || appointment.notes || ""
   const getIsNewClient = (appointment: any) => appointment.clientIsNew || appointment.client?.isNewClient || false
 
+  const getAppointmentDateObj = (appointment: any) => {
+    if (appointment.date && appointment.time) {
+      return new Date(`${appointment.date}T${appointment.time}`)
+    }
+    if (appointment.date) {
+      return new Date(appointment.date)
+    }
+    return new Date()
+  }
+
+  // Filtros
+  const filteredAppointments = appointments.filter((appointment) => {
+    const d = getAppointmentDateObj(appointment)
+    const matchesSearch = getClientName(appointment).toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter
+    const matchesService = serviceFilter === "all" || getServiceName(appointment).includes(serviceFilter)
+    let matchesDate = true
+    if (dateFilter === "today") {
+      const now = new Date()
+      matchesDate = d.toDateString() === now.toDateString()
+    } else if (dateFilter === "week") {
+      const now = new Date()
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      matchesDate = d >= now && d <= weekFromNow
+    } else if (dateFilter === "month") {
+      const now = new Date()
+      matchesDate = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }
+    return matchesSearch && matchesStatus && matchesService && matchesDate
+  })
+
+  // Histórico (cancelados e concluídos)
+  const historyAppointments = appointments.filter((appointment) =>
+    appointment.status === "completed" || appointment.status === "cancelled"
+  )
+
+  // Stats
+  const stats = {
+    thisWeek: appointments.filter(a => {
+      const d = getAppointmentDateObj(a)
+      const now = new Date()
+      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      return d >= now && d <= weekFromNow
+    }).length,
+    thisMonth: appointments.filter(a => {
+      const d = getAppointmentDateObj(a)
+      const now = new Date()
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }).length,
+    attendanceRate: 92,
+    todayAppointments: appointments.filter(a => {
+      const d = getAppointmentDateObj(a)
+      const now = new Date()
+      return d.toDateString() === now.toDateString()
+    }).length,
+    newAppointments: appointments.filter(a => getIsNewClient(a) && a.status === "pending").length,
+  }
+
+  // Ações
   const handleConfirm = async (appointmentId: string) => {
     const token = localStorage.getItem("token")
     try {
@@ -99,7 +171,6 @@ export default function ProfessionalAppointmentsPage() {
 
   const handleCancel = async (appointmentId: string) => {
     const token = localStorage.getItem("token")
-    if (!window.confirm("Deseja cancelar este agendamento?")) return
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}`, {
         method: "DELETE",
@@ -153,7 +224,6 @@ export default function ProfessionalAppointmentsPage() {
   const handleAddNotes = async (appointmentId: string, notes: string) => {
     const token = localStorage.getItem("token")
     try {
-      // Não existe endpoint PATCH /notes, então atualize o status com o campo note
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/status`, {
         method: "PATCH",
         headers: {
@@ -171,76 +241,13 @@ export default function ProfessionalAppointmentsPage() {
     }
   }
 
-  // Corrigido: sempre use data e hora juntos para evitar erro de fuso
-  const getAppointmentDateObj = (appointment: any) => {
-    if (appointment.date && appointment.time) {
-      return new Date(`${appointment.date}T${appointment.time}`)
-    }
-    if (appointment.date) {
-      return new Date(appointment.date)
-    }
-    return new Date()
-  }
-
-  const stats = {
-    thisWeek: appointments.filter(a => {
-      const d = getAppointmentDateObj(a)
-      const now = new Date()
-      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-      return d >= now && d <= weekFromNow
-    }).length,
-    thisMonth: appointments.filter(a => {
-      const d = getAppointmentDateObj(a)
-      const now = new Date()
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    }).length,
-    attendanceRate: 92, // Exemplo fixo
-    todayAppointments: appointments.filter(a => {
-      const d = getAppointmentDateObj(a)
-      const now = new Date()
-      return d.toDateString() === now.toDateString()
-    }).length,
-    newAppointments: appointments.filter(a => getIsNewClient(a) && a.status === "pending").length,
-  }
-
-  // Filtros
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch = getClientName(appointment).toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter
-    const matchesService = serviceFilter === "all" || getServiceName(appointment).includes(serviceFilter)
-
-    let matchesDate = true
-    if (dateFilter === "today") {
-      const d = getAppointmentDateObj(appointment)
-      const now = new Date()
-      matchesDate = d.toDateString() === now.toDateString()
-    } else if (dateFilter === "week") {
-      const d = getAppointmentDateObj(appointment)
-      const now = new Date()
-      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-      matchesDate = d >= now && d <= weekFromNow
-    } else if (dateFilter === "month") {
-      const d = getAppointmentDateObj(appointment)
-      const now = new Date()
-      matchesDate = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    }
-
-    return matchesSearch && matchesStatus && matchesService && matchesDate
-  })
-
-  const todayAppointments = appointments.filter((a) => {
-    const d = getAppointmentDateObj(a)
-    const now = new Date()
-    return d.toDateString() === now.toDateString()
-  })
-  const newAppointments = appointments.filter((a) => getIsNewClient(a) && a.status === "pending")
-
   const handleWhatsApp = (phone: string, clientName: string) => {
     const message = `Olá ${clientName}! Aqui é da BeautyBook. Como posso ajudá-la?`
     const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, "_blank")
   }
 
+  // Badge de status
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -258,16 +265,242 @@ export default function ProfessionalAppointmentsPage() {
     }
   }
 
+  // Card de agendamento
+  function renderAppointmentCard(appointment: any) {
+    const appointmentDate = getAppointmentDateObj(appointment)
+    const now = new Date()
+    const isPast = appointmentDate < now
+    const isPending = appointment.status === "pending"
+    const isRescheduled = appointment.status === "rescheduled"
+    const isCompleted = appointment.status === "completed"
+    const isCancelled = appointment.status === "cancelled"
+
+    // Aviso para pendente e já passou do horário
+    let expiredWarning = null
+    if (isPending && isPast && !isCompleted && !isCancelled) {
+      expiredWarning = (
+        <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded text-xs">
+          O horário deste agendamento já passou e ainda não foi confirmado. Confirme ou reagende.
+        </div>
+      )
+    }
+
+    // Aviso para reagendado (apenas notificação para o profissional)
+    let rescheduleWarning = null
+    if (isRescheduled && !isCompleted && !isCancelled) {
+      rescheduleWarning = (
+        <div className="mb-2 p-2 bg-blue-100 text-blue-800 rounded text-xs">
+          Você alterou a data/horário deste agendamento. Aguarde o comparecimento do cliente.
+        </div>
+      )
+    }
+
+    return (
+      <Card key={appointment.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white dark:bg-[#232326]">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-12 h-12">
+                <AvatarImage src={getClientAvatar(appointment)} />
+                <AvatarFallback className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white">
+                  {getClientName(appointment)
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-semibold text-[#313131] dark:text-white">{getClientName(appointment)}</h3>
+                  {getIsNewClient(appointment) && (
+                    <Badge className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white text-xs">Novo</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-[#313131]/70 dark:text-white/60">{getServiceName(appointment)}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {getStatusBadge(appointment.status)}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+                  {(appointment.status === "pending" || appointment.status === "rescheduled") && (
+                    <DropdownMenuItem onClick={() => setConfirmModal({ open: true, appointment })}>
+                      <Check className="w-4 h-4 mr-2" />
+                      Confirmar
+                    </DropdownMenuItem>
+                  )}
+                  {(appointment.status === "pending" || appointment.status === "confirmed") && (
+                    <>
+                      <DropdownMenuItem onClick={() => setRescheduleData({ id: appointment.id, date: appointment.date, time: appointment.time })}>
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Reagendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setCancelModal({ open: true, appointment })}>
+                        <X className="w-4 h-4 mr-2" />
+                        Cancelar
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {appointment.status === "confirmed" && (
+                    <DropdownMenuItem onClick={() => setFinishModal({ open: true, appointment })}>
+                      <Check className="w-4 h-4 mr-2" />
+                      Concluir
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {expiredWarning}
+          {rescheduleWarning}
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="flex items-center text-[#313131]/70 dark:text-white/60">
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              {appointmentDate.toLocaleDateString("pt-BR")}
+            </div>
+            <div className="flex items-center text-[#313131]/70 dark:text-white/60">
+              <Clock className="w-4 h-4 mr-2" />
+              {appointment.time} • {getServiceDuration(appointment)} min
+            </div>
+            <div className="text-right">
+              <span className="text-lg font-bold text-[#FF96B2] dark:text-[#FFB6D5]">R$ {getPrice(appointment)}</span>
+            </div>
+          </div>
+
+          {getNotes(appointment) && (
+            <div className="mb-4 p-3 bg-[#EFEFEF] dark:bg-[#232326] rounded-lg">
+              <p className="text-sm text-[#313131]/70 dark:text-white/60">
+                <FileText className="w-4 h-4 inline mr-1" />
+                {getNotes(appointment)}
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900"
+              onClick={() => handleWhatsApp(getClientPhone(appointment), getClientName(appointment))}
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              WhatsApp
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
+              onClick={() => window.open(`tel:${getClientPhone(appointment)}`)}
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Ligar
+            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Observações
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-[#313131] dark:text-white">Adicionar Observações</DialogTitle>
+                  <DialogDescription className="dark:text-white/60">
+                    Adicione observações sobre o atendimento de {getClientName(appointment)}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="notes" className="dark:text-white">Observações</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Digite suas observações..."
+                      className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FFB6D5] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    className="w-full bg-[#FF96B2] dark:bg-[#FFB6D5] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FFB6D5]/90 text-white dark:text-[#232326]"
+                    onClick={() => {
+                      handleAddNotes(appointment.id, notes)
+                      setNotes("")
+                    }}
+                  >
+                    Salvar Observações
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            {(appointment.status === "pending" || appointment.status === "rescheduled") && (
+              <Button
+                size="sm"
+                className="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white"
+                onClick={() => setConfirmModal({ open: true, appointment })}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Confirmar
+              </Button>
+            )}
+            {(appointment.status === "pending" || appointment.status === "confirmed") && (
+              <Button
+                size="sm"
+                className="bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white"
+                onClick={() => setRescheduleData({ id: appointment.id, date: appointment.date, time: appointment.time })}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reagendar
+              </Button>
+            )}
+            {(appointment.status === "pending" || appointment.status === "confirmed") && (
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => setCancelModal({ open: true, appointment })}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            )}
+            {appointment.status === "confirmed" && (
+              <Button
+                size="sm"
+                className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white"
+                onClick={() => setFinishModal({ open: true, appointment })}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Concluir
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (loading) {
+    return <div className="p-8 text-center text-[#313131] dark:text-white">Carregando...</div>
+  }
+
   return (
     <div className="min-h-screen bg-[#EFEFEF] dark:bg-[#18181b] p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Meus Agendamentos</h1>
+          <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Agendamentos Recebidos</h1>
           <p className="text-[#313131]/70 dark:text-white/60">Gerencie seus agendamentos e atendimentos</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -321,38 +554,6 @@ export default function ProfessionalAppointmentsPage() {
           </Card>
         </div>
 
-        {/* Notifications */}
-        {(todayAppointments.length > 0 || newAppointments.length > 0) && (
-          <div className="mb-6 space-y-3">
-            {todayAppointments.length > 0 && (
-              <Card className="border-l-4 border-l-[#FF96B2] dark:border-l-[#FFB6D5] bg-[#FF96B2]/5 dark:bg-[#FFB6D5]/10">
-                <CardContent className="pt-4">
-                  <div className="flex items-center space-x-2">
-                    <CalendarIcon className="w-5 h-5 text-[#FF96B2] dark:text-[#FFB6D5]" />
-                    <span className="font-medium text-[#313131] dark:text-white">
-                      Você tem {todayAppointments.length} agendamento{todayAppointments.length > 1 ? "s" : ""} hoje
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {newAppointments.length > 0 && (
-              <Card className="border-l-4 border-l-yellow-500 dark:border-l-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
-                <CardContent className="pt-4">
-                  <div className="flex items-center space-x-2">
-                    <Bell className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                    <span className="font-medium text-[#313131] dark:text-white">
-                      {newAppointments.length} novo{newAppointments.length > 1 ? "s" : ""} agendamento
-                      {newAppointments.length > 1 ? "s" : ""} pendente{newAppointments.length > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {/* Filters */}
         <Card className="border-0 shadow-lg mb-6 bg-white dark:bg-[#232326]">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -419,173 +620,9 @@ export default function ProfessionalAppointmentsPage() {
           </CardContent>
         </Card>
 
-        {/* Appointments List */}
         <div className="space-y-4">
           {filteredAppointments.length > 0 ? (
-            filteredAppointments.map((appointment) => (
-              <Card key={appointment.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white dark:bg-[#232326]">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={getClientAvatar(appointment)} />
-                        <AvatarFallback className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white">
-                          {getClientName(appointment)
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-[#313131] dark:text-white">{getClientName(appointment)}</h3>
-                          {getIsNewClient(appointment) && (
-                            <Badge className="bg-[#FF96B2] dark:bg-[#FFB6D5] text-white text-xs">Novo</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-[#313131]/70 dark:text-white/60">{getServiceName(appointment)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getStatusBadge(appointment.status)}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
-                          {appointment.status === "pending" && (
-                            <DropdownMenuItem onClick={() => handleConfirm(appointment.id)}>
-                              <Check className="w-4 h-4 mr-2" />
-                              Confirmar
-                            </DropdownMenuItem>
-                          )}
-                          {(appointment.status === "pending" || appointment.status === "confirmed") && (
-                            <>
-                              <DropdownMenuItem onClick={() => setRescheduleData({ id: appointment.id, date: appointment.date, time: appointment.time })}>
-                                <RotateCcw className="w-4 h-4 mr-2" />
-                                Reagendar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCancel(appointment.id)}>
-                                <X className="w-4 h-4 mr-2" />
-                                Cancelar
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div className="flex items-center text-[#313131]/70 dark:text-white/60">
-                      <CalendarIcon className="w-4 h-4 mr-2" />
-                      {getAppointmentDateObj(appointment).toLocaleDateString("pt-BR")}
-                    </div>
-                    <div className="flex items-center text-[#313131]/70 dark:text-white/60">
-                      <Clock className="w-4 h-4 mr-2" />
-                      {appointment.time} • {getServiceDuration(appointment)} min
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-lg font-bold text-[#FF96B2] dark:text-[#FFB6D5]">R$ {getPrice(appointment)}</span>
-                    </div>
-                  </div>
-
-                  {getNotes(appointment) && (
-                    <div className="mb-4 p-3 bg-[#EFEFEF] dark:bg-[#232326] rounded-lg">
-                      <p className="text-sm text-[#313131]/70 dark:text-white/60">
-                        <FileText className="w-4 h-4 inline mr-1" />
-                        {getNotes(appointment)}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900"
-                      onClick={() => handleWhatsApp(getClientPhone(appointment), getClientName(appointment))}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      WhatsApp
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
-                      onClick={() => window.open(`tel:${getClientPhone(appointment)}`)}
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Ligar
-                    </Button>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-[#FF96B2] dark:border-[#FFB6D5] text-[#FF96B2] dark:text-[#FFB6D5] hover:bg-[#FF96B2] dark:hover:bg-[#FFB6D5] hover:text-white dark:hover:text-[#232326]"
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Observações
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
-                        <DialogHeader>
-                          <DialogTitle className="text-[#313131] dark:text-white">Adicionar Observações</DialogTitle>
-                          <DialogDescription className="dark:text-white/60">
-                            Adicione observações sobre o atendimento de {getClientName(appointment)}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="notes" className="dark:text-white">Observações</Label>
-                            <Textarea
-                              id="notes"
-                              placeholder="Digite suas observações..."
-                              className="border-[#EFEFEF] dark:border-[#232326] focus:border-[#FF96B2] dark:focus:border-[#FFB6D5] bg-white dark:bg-[#18181b] text-[#313131] dark:text-white"
-                              value={notes}
-                              onChange={(e) => setNotes(e.target.value)}
-                            />
-                          </div>
-                          <Button
-                            className="w-full bg-[#FF96B2] dark:bg-[#FFB6D5] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FFB6D5]/90 text-white dark:text-[#232326]"
-                            onClick={() => {
-                              handleAddNotes(appointment.id, notes)
-                              setNotes("")
-                            }}
-                          >
-                            Salvar Observações
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                    {appointment.status === "pending" && (
-                      <Button
-                        size="sm"
-                        className="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white"
-                        onClick={() => handleConfirm(appointment.id)}
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        Confirmar
-                      </Button>
-                    )}
-                    {appointment.status === "confirmed" && (
-                      <Button
-                        size="sm"
-                        className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white"
-                        onClick={() => handleFinish(appointment.id)}
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        Concluir
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+            filteredAppointments.map((appointment) => renderAppointmentCard(appointment))
           ) : (
             <Card className="border-0 shadow-lg bg-white dark:bg-[#232326]">
               <CardContent className="text-center py-12">
@@ -607,6 +644,109 @@ export default function ProfessionalAppointmentsPage() {
             </Card>
           )}
         </div>
+
+        {/* Histórico de agendamentos cancelados e concluídos */}
+        <Card className="border-0 shadow-lg mt-10 bg-white dark:bg-[#232326]">
+          <CardHeader>
+            <CardTitle>Histórico (Cancelados e Concluídos)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {historyAppointments.length > 0 ? (
+              historyAppointments.map((appointment) => renderAppointmentCard(appointment))
+            ) : (
+              <div className="text-center text-[#313131]/70 dark:text-white/60 py-8">
+                Nenhum agendamento cancelado ou concluído.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Modal de confirmação de agendamento */}
+        <Dialog open={confirmModal.open} onOpenChange={(open) => !open && setConfirmModal({ open: false, appointment: null })}>
+          <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+            <DialogHeader>
+              <DialogTitle>Confirmar Agendamento</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja confirmar o agendamento de <b>{getClientName(confirmModal.appointment || {})}</b>?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setConfirmModal({ open: false, appointment: null })}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="bg-green-600 text-white"
+                onClick={async () => {
+                  await handleConfirm(confirmModal.appointment.id)
+                  setConfirmModal({ open: false, appointment: null })
+                }}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de confirmação de cancelamento */}
+        <Dialog open={cancelModal.open} onOpenChange={(open) => !open && setCancelModal({ open: false, appointment: null })}>
+          <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+            <DialogHeader>
+              <DialogTitle>Cancelar Agendamento</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja cancelar o agendamento de <b>{getClientName(cancelModal.appointment || {})}</b>?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setCancelModal({ open: false, appointment: null })}
+              >
+                Voltar
+              </Button>
+              <Button
+                className="bg-red-600 text-white"
+                onClick={async () => {
+                  await handleCancel(cancelModal.appointment.id)
+                  setCancelModal({ open: false, appointment: null })
+                }}
+              >
+                Cancelar Agendamento
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de confirmação de conclusão */}
+        <Dialog open={finishModal.open} onOpenChange={(open) => !open && setFinishModal({ open: false, appointment: null })}>
+          <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white">
+            <DialogHeader>
+              <DialogTitle>Concluir Agendamento</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja marcar como concluído o agendamento de <b>{getClientName(finishModal.appointment || {})}</b>?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setFinishModal({ open: false, appointment: null })}
+              >
+                Voltar
+              </Button>
+              <Button
+                className="bg-blue-600 text-white"
+                onClick={async () => {
+                  await handleFinish(finishModal.appointment.id)
+                  setFinishModal({ open: false, appointment: null })
+                }}
+              >
+                Concluir
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Modal de reagendamento */}
         <Dialog open={!!rescheduleData} onOpenChange={(open) => !open && setRescheduleData(null)}>
@@ -636,17 +776,25 @@ export default function ProfessionalAppointmentsPage() {
                   onChange={(e) => setRescheduleData((prev) => prev ? { ...prev, time: e.target.value } : null)}
                 />
               </div>
-              <Button
-                className="w-full bg-[#FF96B2] dark:bg-[#FFB6D5] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FFB6D5]/90 text-white dark:text-[#232326]"
-                onClick={() => {
-                  if (rescheduleData) {
-                    handleReschedule(rescheduleData.id, rescheduleData.date, rescheduleData.time)
-                    setRescheduleData(null)
-                  }
-                }}
-              >
-                Salvar Reagendamento
-              </Button>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setRescheduleData(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="bg-[#FF96B2] dark:bg-[#FFB6D5] hover:bg-[#FF96B2]/90 dark:hover:bg-[#FFB6D5]/90 text-white dark:text-[#232326]"
+                  onClick={async () => {
+                    if (rescheduleData) {
+                      await handleReschedule(rescheduleData.id, rescheduleData.date, rescheduleData.time)
+                      setRescheduleData(null)
+                    }
+                  }}
+                >
+                  Salvar Reagendamento
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
