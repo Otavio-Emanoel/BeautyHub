@@ -18,6 +18,7 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -45,14 +46,16 @@ export default function LoginPage() {
       alert("Erro ao fazer login: " + error.message);
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
       router.push("/"); // Redireciona para a home
     } catch (error: any) {
       alert("Erro ao fazer login: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,9 +127,35 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full py-3 text-lg bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#f472b6] dark:hover:bg-[#f472b6]/90">
+                <Button
+                type="submit"
+                className="w-full py-3 text-lg bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#f472b6] dark:hover:bg-[#f472b6]/90 flex items-center justify-center"
+                disabled={loading}
+                >
+                {loading ? (
+                  <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                  </svg>
+                ) : null}
                 Entrar
-              </Button>
+                </Button>
             </form>
 
             <div className="mt-8 text-center">

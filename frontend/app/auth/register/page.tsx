@@ -25,13 +25,14 @@ export default function RegisterPage() {
     confirmPassword: "",
     userType: "",
   })
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true);
     console.log(formData);
 
 
@@ -44,6 +45,7 @@ export default function RegisterPage() {
       endpoint = `${API_URL}/api/admin/register`;
     } else {
       alert("Selecione o tipo de usuário!");
+      setLoading(false);
       return;
     }
 
@@ -65,7 +67,10 @@ export default function RegisterPage() {
 
       alert(data.error || data.message || "Erro ao cadastrar");
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        setLoading(false);
+        return;
+      }
 
 
       // Cadastro realizado com sucesso
@@ -87,6 +92,8 @@ export default function RegisterPage() {
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error)
       alert("Erro ao registrar usuário. Por favor, tente novamente.")
+    } finally {
+      setLoading(false);
     }
 
   }
@@ -214,9 +221,35 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#F472B6] dark:hover:bg-[#F472B6]/90">
+                <Button
+                type="submit"
+                className="w-full bg-[#FF96B2] hover:bg-[#FF96B2]/90 text-white dark:bg-[#F472B6] dark:hover:bg-[#F472B6]/90 flex items-center justify-center"
+                disabled={loading}
+                >
+                {loading && (
+                  <svg
+                  className="animate-spin mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                  </svg>
+                )}
                 Criar conta
-              </Button>
+                </Button>
             </form>
 
             <div className="mt-6 text-center">
