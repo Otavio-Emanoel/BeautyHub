@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile, professionalDashboard } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import multer from "multer";
 
@@ -66,5 +66,8 @@ router.delete("/portfolio/:id", authenticateToken, deletePortfolioItem);
 
 // Rota para obter o perfil público do profissional
 router.get("/public-profile/:id", getPublicProfessionalProfile);
+
+// Rota para o dashboard do profissional
+router.get("/dashboard", authenticateToken, professionalDashboard);
 
 export default router;

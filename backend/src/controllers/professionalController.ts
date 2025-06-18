@@ -440,3 +440,95 @@ export async function getPublicProfessionalProfile(req: Request, res: Response) 
     res.status(400).json({ error: "Erro ao buscar perfil público", details: error.message });
   }
 }
+
+// Dashboard do profissional
+export async function professionalDashboard(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+  const db = admin.firestore();
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+  // Agendamentos de hoje
+  const todaySnap = await db.collection("appointments")
+    .where("professionalId", "==", professionalId)
+    .where("date", "==", todayStr)
+    .get();
+  const todayAppointments = todaySnap.size;
+
+  // Agendamentos de ontem
+  const yesterdaySnap = await db.collection("appointments")
+    .where("professionalId", "==", professionalId)
+    .where("date", "==", yesterdayStr)
+    .get();
+  const yesterdayAppointments = yesterdaySnap.size;
+
+  // Receita do mês atual
+  const firstDayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstDayMonthStr = firstDayMonth.toISOString().split("T")[0];
+  const monthSnap = await db.collection("appointments")
+    .where("professionalId", "==", professionalId)
+    .where("date", ">=", firstDayMonthStr)
+    .where("status", "==", "completed")
+    .get();
+  let monthRevenue = 0;
+  monthSnap.forEach(doc => {
+    monthRevenue += doc.data().servicePrice || 0;
+  });
+
+  // Receita do mês anterior
+  const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+  const firstDayLastMonthStr = firstDayLastMonth.toISOString().split("T")[0];
+  const lastDayLastMonthStr = lastMonth.toISOString().split("T")[0];
+  const lastMonthSnap = await db.collection("appointments")
+    .where("professionalId", "==", professionalId)
+    .where("date", ">=", firstDayLastMonthStr)
+    .where("date", "<=", lastDayLastMonthStr)
+    .where("status", "==", "completed")
+    .get();
+  let lastMonthRevenue = 0;
+  lastMonthSnap.forEach(doc => {
+    lastMonthRevenue += doc.data().servicePrice || 0;
+  });
+
+  // Novos clientes do mês atual
+  const clientsThisMonth = new Set<string>();
+  monthSnap.forEach(doc => {
+    clientsThisMonth.add(doc.data().clientId);
+  });
+
+  // Novos clientes do mês anterior
+  const clientsLastMonth = new Set<string>();
+  lastMonthSnap.forEach(doc => {
+    clientsLastMonth.add(doc.data().clientId);
+  });
+
+  // Avaliações
+  const reviewsSnap = await db.collection("appointments")
+    .where("professionalId", "==", professionalId)
+    .where("rating", ">=", 1)
+    .get();
+  let totalRating = 0;
+  let totalReviews = 0;
+  reviewsSnap.forEach(doc => {
+    totalRating += doc.data().rating || 0;
+    totalReviews++;
+  });
+  const avgRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+
+  res.json({
+    todayAppointments,
+    todayAppointmentsChange: yesterdayAppointments === 0 ? 100 : ((todayAppointments - yesterdayAppointments) / yesterdayAppointments) * 100,
+    monthRevenue,
+    monthRevenueChange: lastMonthRevenue === 0 ? 100 : ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100,
+    newClients: clientsThisMonth.size,
+    newClientsChange: clientsLastMonth.size === 0 ? 100 : ((clientsThisMonth.size - clientsLastMonth.size) / clientsLastMonth.size) * 100,
+    avgRating,
+    totalReviews
+  });
+}
