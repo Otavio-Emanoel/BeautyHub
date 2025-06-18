@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile, professionalDashboard } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile, professionalDashboard, ratingsDistribution, professionalReviews, servicesRatings, professionalTrends } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import multer from "multer";
 
@@ -69,5 +69,17 @@ router.get("/public-profile/:id", getPublicProfessionalProfile);
 
 // Rota para o dashboard do profissional
 router.get("/dashboard", authenticateToken, professionalDashboard);
+
+// Rota para distribuição de avaliações do profissional
+router.get("/reports/ratings-distribution", authenticateToken, ratingsDistribution);
+
+// Rota de listagem de avaliações do profissional
+router.get("/reports/reviews", authenticateToken, professionalReviews);
+
+// Rota de avaliações dos serviços do profissional
+router.get("/reports/services-ratings", authenticateToken, servicesRatings);
+
+// Rota de tendências do profissional
+router.get("/reports/trends", authenticateToken, professionalTrends);
 
 export default router;

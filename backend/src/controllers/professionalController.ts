@@ -449,86 +449,221 @@ export async function professionalDashboard(req: Request, res: Response) {
 
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-  // Agendamentos de hoje
-  const todaySnap = await db.collection("appointments")
-    .where("professionalId", "==", professionalId)
-    .where("date", "==", todayStr)
-    .get();
-  const todayAppointments = todaySnap.size;
-
-  // Agendamentos de ontem
-  const yesterdaySnap = await db.collection("appointments")
-    .where("professionalId", "==", professionalId)
-    .where("date", "==", yesterdayStr)
-    .get();
-  const yesterdayAppointments = yesterdaySnap.size;
-
-  // Receita do mês atual
+  // Datas para o mês atual e anterior
   const firstDayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const firstDayMonthStr = firstDayMonth.toISOString().split("T")[0];
+  const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+  const firstDayLastMonthStr = firstDayLastMonth.toISOString().split("T")[0];
+  const lastDayLastMonthStr = lastMonth.toISOString().split("T")[0];
+
+  // Atendimentos concluídos mês atual
   const monthSnap = await db.collection("appointments")
     .where("professionalId", "==", professionalId)
     .where("date", ">=", firstDayMonthStr)
     .where("status", "==", "completed")
     .get();
-  let monthRevenue = 0;
-  monthSnap.forEach(doc => {
-    monthRevenue += doc.data().servicePrice || 0;
-  });
+  const completedAppointments = monthSnap.size;
 
-  // Receita do mês anterior
-  const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-  const firstDayLastMonthStr = firstDayLastMonth.toISOString().split("T")[0];
-  const lastDayLastMonthStr = lastMonth.toISOString().split("T")[0];
-  const lastMonthSnap = await db.collection("appointments")
-    .where("professionalId", "==", professionalId)
-    .where("date", ">=", firstDayLastMonthStr)
-    .where("date", "<=", lastDayLastMonthStr)
-    .where("status", "==", "completed")
-    .get();
-  let lastMonthRevenue = 0;
-  lastMonthSnap.forEach(doc => {
-    lastMonthRevenue += doc.data().servicePrice || 0;
-  });
-
-  // Novos clientes do mês atual
-  const clientsThisMonth = new Set<string>();
-  monthSnap.forEach(doc => {
-    clientsThisMonth.add(doc.data().clientId);
-  });
-
-  // Novos clientes do mês anterior
-  const clientsLastMonth = new Set<string>();
-  lastMonthSnap.forEach(doc => {
-    clientsLastMonth.add(doc.data().clientId);
-  });
-
-  // Avaliações
+  // Avaliações gerais
   const reviewsSnap = await db.collection("appointments")
     .where("professionalId", "==", professionalId)
     .where("rating", ">=", 1)
     .get();
-  let totalRating = 0;
-  let totalReviews = 0;
+  let totalRating = 0, totalReviews = 0;
+  let reviewsThisMonth = 0, sumRatingThisMonth = 0;
+  let reviewsLastMonth = 0, sumRatingLastMonth = 0;
   reviewsSnap.forEach(doc => {
-    totalRating += doc.data().rating || 0;
+    const data = doc.data();
+    const rating = data.rating || 0;
+    const date = data.ratedAt || data.finishedAt || data.date;
+    totalRating += rating;
     totalReviews++;
+    if (date && date >= firstDayMonthStr) {
+      reviewsThisMonth++;
+      sumRatingThisMonth += rating;
+    }
+    if (date && date >= firstDayLastMonthStr && date <= lastDayLastMonthStr) {
+      reviewsLastMonth++;
+      sumRatingLastMonth += rating;
+    }
   });
   const avgRating = totalReviews > 0 ? totalRating / totalReviews : 0;
+  const avgRatingThisMonth = reviewsThisMonth > 0 ? sumRatingThisMonth / reviewsThisMonth : 0;
+  const avgRatingLastMonth = reviewsLastMonth > 0 ? sumRatingLastMonth / reviewsLastMonth : 0;
+  const responseRate = completedAppointments > 0 ? Math.round((reviewsThisMonth / completedAppointments) * 100) : 0;
+  const reviewsTrend = reviewsLastMonth === 0 ? reviewsThisMonth : reviewsThisMonth - reviewsLastMonth;
+  const ratingTrend = avgRatingThisMonth - avgRatingLastMonth;
 
   res.json({
-    todayAppointments,
-    todayAppointmentsChange: yesterdayAppointments === 0 ? 100 : ((todayAppointments - yesterdayAppointments) / yesterdayAppointments) * 100,
-    monthRevenue,
-    monthRevenueChange: lastMonthRevenue === 0 ? 100 : ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100,
-    newClients: clientsThisMonth.size,
-    newClientsChange: clientsLastMonth.size === 0 ? 100 : ((clientsThisMonth.size - clientsLastMonth.size) / clientsLastMonth.size) * 100,
     avgRating,
-    totalReviews
+    totalReviews,
+    completedAppointments,
+    reviewsThisMonth,
+    reviewsLastMonth,
+    avgRatingThisMonth,
+    avgRatingLastMonth,
+    responseRate,
+    reviewsTrend,
+    ratingTrend,
   });
+}
+
+// Relatório das avaliações do profissional
+export async function ratingsDistribution(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    const snap = await admin.firestore()
+      .collection("appointments")
+      .where("professionalId", "==", professionalId)
+      .where("rating", ">=", 1)
+      .get();
+
+    const distribution = [0, 0, 0, 0, 0, 0]; // [0, 1, 2, 3, 4, 5]
+    snap.forEach(doc => {
+      const rating = Math.round(doc.data().rating || 0);
+      if (rating >= 1 && rating <= 5) distribution[rating]++;
+    });
+    const total = snap.size || 1;
+    const ratingDistribution = [5, 4, 3, 2, 1].map(stars => ({
+      stars,
+      count: distribution[stars],
+      percentage: Math.round((distribution[stars] / total) * 100)
+    }));
+
+    res.json({ ratingDistribution });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar distribuição", details: error.message });
+  }
+}
+
+// Rota para listar as avaliações do profissional
+export async function professionalReviews(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    const snap = await admin.firestore()
+      .collection("appointments")
+      .where("professionalId", "==", professionalId)
+      .where("rating", ">=", 1)
+      .orderBy("rating", "desc")
+      .orderBy("ratedAt", "desc")
+      .limit(20)
+      .get();
+
+    const reviews = await Promise.all(snap.docs.map(async doc => {
+      const data = doc.data();
+      let client = { name: "Cliente", avatar: "", isVerified: false };
+      if (data.clientId) {
+        const clientDoc = await admin.firestore().collection("users").doc(data.clientId).get();
+        if (clientDoc.exists) {
+          const c = clientDoc.data();
+          client = {
+            name: c?.name || "Cliente",
+            avatar: c?.avatar || "",
+            isVerified: true
+          };
+        }
+      }
+      return {
+        id: doc.id,
+        client,
+        service: data.serviceName || "",
+        rating: data.rating,
+        date: data.ratedAt || data.finishedAt || data.date || "",
+        comment: data.review || "",
+        helpful: data.helpful || 0,
+        response: data.response || "",
+        tags: data.tags || [],
+      };
+    }));
+
+    res.json({ reviews });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar avaliações", details: error.message });
+  }
+}
+
+// Rota para listar as avaliações dos serviços do profissional
+export async function servicesRatings(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    // Busca todos os serviços do profissional
+    const servicesSnap = await admin.firestore()
+      .collection("services")
+      .where("professionalId", "==", professionalId)
+      .get();
+
+    const services = await Promise.all(servicesSnap.docs.map(async doc => {
+      const service = doc.data();
+      // Busca avaliações desse serviço
+      const reviewsSnap = await admin.firestore()
+        .collection("appointments")
+        .where("serviceId", "==", doc.id)
+        .where("rating", ">=", 1)
+        .get();
+      let total = 0, sum = 0;
+      reviewsSnap.forEach(r => {
+        sum += r.data().rating || 0;
+        total++;
+      });
+      return {
+        name: service.name,
+        rating: total ? (sum / total).toFixed(1) : "0.0",
+        reviews: total,
+        trend: "+0.0" // Você pode calcular a tendência se quiser
+      };
+    }));
+
+    res.json({ services });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar avaliações por serviço", details: error.message });
+  }
+}
+
+// Rota de tendencias
+export async function professionalTrends(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    // Exemplo: médias e volumes dos últimos 6 meses
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ label: `${d.getMonth() + 1}/${d.getFullYear()}`, start: d });
+    }
+    const trends = [];
+    for (let i = 0; i < months.length; i++) {
+      const start = months[i].start;
+      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+      const snap = await admin.firestore()
+        .collection("appointments")
+        .where("professionalId", "==", professionalId)
+        .where("date", ">=", start.toISOString().split("T")[0])
+        .where("date", "<", end.toISOString().split("T")[0])
+        .where("rating", ">=", 1)
+        .get();
+      let total = 0, sum = 0;
+      snap.forEach(doc => {
+        sum += doc.data().rating || 0;
+        total++;
+      });
+      trends.push({
+        label: months[i].label,
+        avgRating: total ? (sum / total).toFixed(2) : "0.00",
+        reviews: total
+      });
+    }
+    res.json({ trends });
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao buscar tendências", details: error.message });
+  }
 }
