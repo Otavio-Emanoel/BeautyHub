@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile, professionalDashboard, ratingsDistribution, professionalReviews, servicesRatings, professionalTrends } from "../controllers/professionalController";
+import { updateProfessionalProfile, updateAvailability, listProfessionalAppointments, updateServiceDuration, registerProfessional, getProfessionalProfile, uploadProfessionalProfilePicture, listOwnServices, listPublicProfessionalServices, createProfessionalService, editProfessionalService, deleteProfessionalService, addCertification, listCertifications, deleteCertification, addPortfolioItem, listPortfolio, editPortfolioItem, deletePortfolioItem, getPublicProfessionalProfile, professionalDashboard, ratingsDistribution, professionalReviews, servicesRatings, professionalTrends, exportReviewsPdf } from "../controllers/professionalController";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import multer from "multer";
 
@@ -81,5 +81,8 @@ router.get("/reports/services-ratings", authenticateToken, servicesRatings);
 
 // Rota de tendências do profissional
 router.get("/reports/trends", authenticateToken, professionalTrends);
+
+// Rota para exportar avaliações do profissional em PDF
+router.get("/reports/reviews/pdf", authenticateToken, exportReviewsPdf);
 
 export default router;

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import admin from '../config/firebase';
 import { getStorage } from "firebase-admin/storage";
+import PDFDocument from "pdfkit";
+import stream from "stream";
 
 export async function updateProfessionalProfile(req: Request, res: Response) {
   const uid = req.users?.uid;
@@ -733,5 +735,122 @@ export async function professionalTrends(req: Request, res: Response) {
     res.json({ trends });
   } catch (error: any) {
     res.status(400).json({ error: "Erro ao buscar tendências", details: error.message });
+  }
+}
+
+export async function exportReviewsPdf(req: Request, res: Response) {
+  const professionalId = req.users?.uid;
+  if (!professionalId) return res.status(401).json({ error: "Usuário não autenticado" });
+
+  try {
+    // Busca avaliações
+    const snap = await admin.firestore()
+      .collection("appointments")
+      .where("professionalId", "==", professionalId)
+      .where("rating", ">=", 1)
+      .orderBy("rating", "desc")
+      .orderBy("ratedAt", "desc")
+      .limit(50)
+      .get();
+
+    // Monta dados
+    const reviews = await Promise.all(snap.docs.map(async doc => {
+      const data = doc.data();
+      let clientName = "Cliente";
+      if (data.clientId) {
+        const clientDoc = await admin.firestore().collection("users").doc(data.clientId).get();
+        if (clientDoc.exists) {
+          clientName = clientDoc.data()?.name || "Cliente";
+        }
+      }
+      return {
+        client: clientName,
+        service: data.serviceName || "",
+        rating: data.rating,
+        date: data.ratedAt || data.finishedAt || data.date || "",
+        comment: data.review || "",
+      };
+    }));
+
+    // Gera PDF melhorado
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
+    const passThrough = new stream.PassThrough();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=relatorio-avaliacoes.pdf");
+    doc.pipe(passThrough);
+
+    // Cabeçalho
+    doc
+      .fillColor("#FF96B2")
+      .fontSize(22)
+      .font("Helvetica-Bold")
+      .text("Relatório de Avaliações", { align: "center" })
+      .moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("#333")
+      .font("Helvetica")
+      .text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, { align: "center" })
+      .moveDown(1.5);
+
+    // Tabela de avaliações
+    const tableTop = doc.y + 10;
+    const col1 = 40, col2 = 180, col3 = 320, col4 = 380, col5 = 440;
+    // Cabeçalho da tabela
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .fillColor("#FF96B2")
+      .text("Cliente", col1, tableTop)
+      .text("Serviço", col2, tableTop)
+      .text("Nota", col3, tableTop)
+      .text("Data", col4, tableTop)
+      .text("Comentário", col5, tableTop);
+
+    doc.moveTo(col1, tableTop + 15).lineTo(550, tableTop + 15).stroke("#FF96B2");
+
+    // Linhas da tabela
+    let y = tableTop + 22;
+    doc.font("Helvetica").fontSize(11).fillColor("#222");
+    reviews.forEach((review, idx) => {
+      if (y > 750) {
+        doc.addPage();
+        y = 50;
+      }
+      doc.text(review.client, col1, y, { width: col2 - col1 - 5, ellipsis: true });
+      doc.text(review.service, col2, y, { width: col3 - col2 - 5, ellipsis: true });
+      doc
+        .fillColor("#FF96B2")
+        .text(String(review.rating), col3, y, { width: col4 - col3 - 5, align: "center" })
+        .fillColor("#222");
+      doc.text(
+        review.date ? new Date(review.date).toLocaleDateString("pt-BR") : "",
+        col4,
+        y,
+        { width: col5 - col4 - 5, align: "center" }
+      );
+      doc.text(review.comment, col5, y, { width: 120, ellipsis: true });
+      y += 28;
+
+      // Linha separadora
+      doc.moveTo(col1, y - 6).lineTo(550, y - 6).stroke("#eee");
+    });
+
+    // Rodapé
+    doc
+      .fontSize(10)
+      .fillColor("#888")
+      .text(
+        `Total de avaliações: ${reviews.length}`,
+        40,
+        800,
+        { align: "left" }
+      );
+
+    doc.end();
+    passThrough.pipe(res);
+  } catch (error: any) {
+    res.status(400).json({ error: "Erro ao gerar PDF", details: error.message });
   }
 }

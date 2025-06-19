@@ -174,10 +174,10 @@ function OverviewTab() {
               {loading
                 ? "--"
                 : stats.reviewsTrend > 0
-                ? `+${stats.reviewsTrend} este mês`
-                : stats.reviewsTrend < 0
-                ? `${stats.reviewsTrend} este mês`
-                : "0 este mês"}
+                  ? `+${stats.reviewsTrend} este mês`
+                  : stats.reviewsTrend < 0
+                    ? `${stats.reviewsTrend} este mês`
+                    : "0 este mês"}
             </p>
           </CardContent>
         </Card>
@@ -281,9 +281,9 @@ function ReviewsTab() {
                   <AvatarFallback>
                     {review.client?.name
                       ? review.client.name
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
                       : "CL"}
                   </AvatarFallback>
                 </Avatar>
@@ -356,13 +356,12 @@ function ServicesTab() {
                     <span className="text-sm text-[#313131]/70 dark:text-white/70">({service.reviews} avaliações)</span>
                   </div>
                 </div>
-                <div className={`flex items-center space-x-1 text-sm ${
-                  service.trend && service.trend.startsWith("+")
+                <div className={`flex items-center space-x-1 text-sm ${service.trend && service.trend.startsWith("+")
                     ? "text-green-600 dark:text-green-400"
                     : service.trend && service.trend.startsWith("-")
                       ? "text-red-600 dark:text-red-400"
                       : "text-[#313131]/70 dark:text-white/70"
-                }`}>
+                  }`}>
                   {service.trend && service.trend.startsWith("+") && <TrendingUp className="w-4 h-4" />}
                   {service.trend && service.trend.startsWith("-") && <TrendingDown className="w-4 h-4" />}
                   <span>{service.trend}</span>
@@ -484,7 +483,23 @@ export default function ProfessionalReportsPage() {
               <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Relatório de Feedbacks</h1>
               <p className="text-[#313131]/70 dark:text-white/70">Acompanhe as avaliações e comentários dos seus clientes</p>
             </div>
-            <Button variant="outline" className="border-[#FF96B2] dark:border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF96B2] dark:hover:text-white">
+            <Button
+              variant="outline"
+              className="border-[#FF96B2] dark:border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF96B2] dark:hover:text-white"
+              onClick={async () => {
+                const token = localStorage.getItem("token")
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/professional/reports/reviews/pdf`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                })
+                const blob = await res.blob()
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = "relatorio-avaliacoes.pdf"
+                a.click()
+                window.URL.revokeObjectURL(url)
+              }}
+            >
               <Download className="w-4 h-4 mr-2" />
               Exportar Relatório
             </Button>
