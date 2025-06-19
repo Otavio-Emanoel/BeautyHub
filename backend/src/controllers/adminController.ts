@@ -29,26 +29,24 @@ export async function registerAdmin(req: Request, res: Response) {
 }
 
 export async function createSalon(req: Request, res: Response) {
-    const { name, address, phone, uid } = req.body;
+    const { uid, ...data } = req.body;
 
     if (!uid) {
         return res.status(400).json({ error: "UID do administrador não fornecido" });
     }
 
     try {
-        // Cria o salão
+        // Cria o salão com todos os dados recebidos (inclusive categoria, capacidade, avatar, etc)
         const salonRef = await admin.firestore().collection('salons').add({
-            name,
-            address,
-            phone,
+            ...data,
             uid,
             createdAt: new Date().toISOString()
-        })
+        });
 
         // Atualiza o usuário administrador com o ID do salão
         await admin.firestore().collection('users').doc(uid).update({
             salonId: salonRef.id
-        })
+        });
 
         res.status(201).json({ message: "Salão cadastrado com sucesso", salonId: salonRef.id });
     } catch (error: any) {
@@ -213,7 +211,7 @@ export async function getAdminProfile(req: Request, res: Response) {
     if (!uid) return res.status(401).json({ error: "Usuário não autenticado" });
     const userDoc = await admin.firestore().collection('users').doc(uid).get();
     if (!userDoc.exists) return res.status(404).json({ error: "Usuário não encontrado" });
-    return res.status(200).json(userDoc.data());
+    return res.status(200).json({ uid, ...userDoc.data() });
 }
 
 export async function uploadAdminProfilePicture(req: any, res: any) {
