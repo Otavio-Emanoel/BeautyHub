@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, DollarSign, Users, TrendingUp, Star, BarChart2, UserCog, Scissors } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, DollarSign, Users, Star, BarChart2, UserCog, Scissors, X, Check, RotateCcw } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 
 type Appointment = {
@@ -12,9 +13,12 @@ type Appointment = {
   time: string
   clientName: string
   clientAvatar?: string
+  clientId?: string
   serviceName: string
   serviceImage?: string
   professionalName: string
+  status?: string
+  note?: string
 }
 
 export default function ProfessionalDashboardPage() {
@@ -32,6 +36,9 @@ export default function ProfessionalDashboardPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [openProfileModal, setOpenProfileModal] = useState(false)
   const [openServicesModal, setOpenServicesModal] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [openDetailsModal, setOpenDetailsModal] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -72,11 +79,24 @@ export default function ProfessionalDashboardPage() {
           .map((a: any) => ({
             id: a.id,
             time: a.time,
-            clientName: a.clientName || a.client?.name || "Cliente",
-            clientAvatar: a.clientAvatar || a.client?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(a.clientName || a.client?.name || "Cliente")}`,
+            clientId: a.clientId,
+            clientName:
+              a.client?.name ||
+              a.clientName ||
+              a.client?.displayName ||
+              "Cliente",
+            clientAvatar:
+              a.client?.avatar ||
+              a.client?.photoURL ||
+              a.clientAvatar ||
+              (a.clientName || a.client?.name
+                ? `https://ui-avatars.com/api/?name=${encodeURIComponent(a.clientName || a.client?.name)}`
+                : "/user.svg"),
             serviceName: a.serviceName || a.service || "",
             serviceImage: a.serviceImage || a.service?.image || "",
             professionalName: a.professionalName || "",
+            status: a.status,
+            note: a.note || a.observations || a.clientNote || "",
           }))
         setAppointments(upcoming)
       } catch {
@@ -105,6 +125,163 @@ export default function ProfessionalDashboardPage() {
   function formatPercent(value: number) {
     const abs = Math.abs(value)
     return (value > 0 ? "+" : value < 0 ? "-" : "") + abs.toFixed(0) + "%"
+  }
+
+  function getStatusBadge(status?: string) {
+    switch (status) {
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>
+      case "confirmed":
+        return <Badge className="bg-green-100 text-green-800">Confirmado</Badge>
+      case "completed":
+        return <Badge className="bg-blue-100 text-blue-800">Concluído</Badge>
+      case "cancelled":
+        return <Badge className="bg-red-100 text-red-800">Cancelado</Badge>
+      case "rescheduled":
+        return <Badge className="bg-purple-100 text-purple-800">Reagendado</Badge>
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">Pendente</Badge>
+    }
+  }
+
+  // Ações dos botões do modal
+  async function handleConfirm(appointmentId: string) {
+    setActionLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "confirmed" }),
+      })
+      if (!res.ok) throw new Error("Erro ao confirmar agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "confirmed" } : a)
+      )
+      setOpenDetailsModal(false)
+    } catch (e) {
+      alert("Erro ao confirmar agendamento")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleFinish(appointmentId: string) {
+    setActionLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}/finish`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao concluir agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "completed" } : a)
+      )
+      setOpenDetailsModal(false)
+    } catch (e) {
+      alert("Erro ao concluir agendamento")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleCancel(appointmentId: string) {
+    setActionLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules/appointment/${appointmentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error("Erro ao cancelar agendamento")
+      setAppointments((prev) =>
+        prev.map((a) => a.id === appointmentId ? { ...a, status: "cancelled" } : a)
+      )
+      setOpenDetailsModal(false)
+    } catch (e) {
+      alert("Erro ao cancelar agendamento")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Modal de detalhes do agendamento
+  function renderDetailsModal() {
+    if (!selectedAppointment) return null
+    return (
+      <Dialog open={openDetailsModal} onOpenChange={setOpenDetailsModal}>
+        <DialogContent className="bg-white dark:bg-[#232326] text-[#313131] dark:text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Agendamento</DialogTitle>
+            <DialogDescription>
+              Veja as opções para o atendimento de <b>{selectedAppointment.clientName}</b>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-4 mb-4">
+            <img
+              src={selectedAppointment.clientAvatar}
+              alt={selectedAppointment.clientName}
+              className="w-12 h-12 rounded-full border border-[#FF96B2] dark:border-[#ffb6ce] object-cover"
+            />
+            <div>
+              <div className="font-semibold">{selectedAppointment.clientName}</div>
+              <div className="text-sm text-[#313131]/70 dark:text-white/70">{selectedAppointment.serviceName}</div>
+              <div className="text-xs text-[#313131]/60 dark:text-white/60">{selectedAppointment.time}</div>
+              <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
+              {selectedAppointment.note && (
+                <div className="mt-2 text-xs text-[#313131]/80 dark:text-white/80 italic">
+                  <span className="font-semibold">Observação:</span> {selectedAppointment.note}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            {selectedAppointment.status === "pending" || selectedAppointment.status === "rescheduled" ? (
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleConfirm(selectedAppointment.id)}
+                disabled={actionLoading}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Confirmar Atendimento
+              </Button>
+            ) : null}
+            {selectedAppointment.status === "confirmed" ? (
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => handleFinish(selectedAppointment.id)}
+                disabled={actionLoading}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Concluir Atendimento
+              </Button>
+            ) : null}
+            {(selectedAppointment.status === "pending" || selectedAppointment.status === "confirmed" || selectedAppointment.status === "rescheduled") && (
+              <Button
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => handleCancel(selectedAppointment.id)}
+                disabled={actionLoading}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar Agendamento
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="w-full border-[#FF96B2] text-[#FF96B2] hover:bg-[#FF96B2] hover:text-white"
+              onClick={() => setOpenDetailsModal(false)}
+              disabled={actionLoading}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
@@ -200,17 +377,15 @@ export default function ProfessionalDashboardPage() {
                   appointments.map((appointment) => (
                     <div key={appointment.id} className="flex items-center justify-between p-4 bg-[#EFEFEF] dark:bg-[#18181b] rounded-lg">
                       <div className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-12 h-12 bg-[#FF96B2] dark:bg-[#ffb6ce] text-white dark:text-[#18181b] rounded-lg font-semibold">
-                          {appointment.time}
-                        </div>
+                        <img
+                          src={appointment.clientAvatar}
+                          alt={appointment.clientName}
+                          className="w-12 h-12 rounded-full border border-[#FF96B2] dark:border-[#ffb6ce] object-cover"
+                        />
                         <div>
                           <div className="flex items-center gap-2">
-                            <img
-                              src={appointment.clientAvatar}
-                              alt={appointment.clientName}
-                              className="w-8 h-8 rounded-full border border-[#FF96B2] dark:border-[#ffb6ce] object-cover"
-                            />
                             <span className="font-medium text-[#313131] dark:text-white">{appointment.clientName}</span>
+                            {getStatusBadge(appointment.status)}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             {appointment.serviceImage && (
@@ -222,13 +397,21 @@ export default function ProfessionalDashboardPage() {
                             )}
                             <span className="text-sm text-[#313131]/70 dark:text-white/70">{appointment.serviceName}</span>
                           </div>
+                          {appointment.note && (
+                            <div className="mt-2 text-xs text-[#313131]/80 dark:text-white/80 italic">
+                              <span className="font-semibold">Observação:</span> {appointment.note}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
                         className="border-[#FF96B2] dark:border-[#ffb6ce] text-[#FF96B2] dark:text-[#ffb6ce] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#ffb6ce] dark:hover:text-[#18181b]"
-                        onClick={() => router.push(`/appoint-pro`)}
+                        onClick={() => {
+                          setSelectedAppointment(appointment)
+                          setOpenDetailsModal(true)
+                        }}
                       >
                         Ver detalhes
                       </Button>
@@ -327,6 +510,9 @@ export default function ProfessionalDashboardPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Detalhes do Agendamento */}
+      {renderDetailsModal()}
     </div>
   )
 }
