@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts"
 import {
   Star,
   TrendingUp,
@@ -276,15 +277,20 @@ function ReviewsTab() {
             {reviews.map((review, idx) => (
               <div key={review.id || idx} className="flex items-center gap-4">
                 <Avatar>
-                  <AvatarImage src={review.client.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={review.client?.avatar || "/placeholder.svg"} />
                   <AvatarFallback>
-                    {review.client.name?.split(" ").map((n: string) => n[0]).join("") || "CL"}
+                    {review.client?.name
+                      ? review.client.name
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")
+                      : "CL"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#313131] dark:text-white">{review.client.name}</span>
-                    {review.client.isVerified && (
+                    <span className="font-semibold text-[#313131] dark:text-white">{review.client?.name || "Cliente"}</span>
+                    {review.client?.isVerified && (
                       <Badge className="bg-blue-100 text-blue-800 text-xs">Verificado</Badge>
                     )}
                   </div>
@@ -396,69 +402,67 @@ function TrendsTab() {
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
+      {/* Evolução da Avaliação */}
       <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
         <CardHeader>
           <CardTitle className="text-[#313131] dark:text-white">Evolução da Avaliação</CardTitle>
           <CardDescription className="dark:text-white/70">Tendência da sua avaliação média</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex flex-col items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
+          <div className="h-72 flex flex-col items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
             {loading && <div>Carregando...</div>}
             {!loading && trends.length === 0 && <div>Nenhum dado encontrado.</div>}
             {!loading && trends.length > 0 && (
-              <div className="w-full">
-                <div className="flex justify-between mb-2">
-                  {trends.map((t: any, i: number) => (
-                    <span key={i} className="text-xs text-[#313131]/70 dark:text-white/70">{t.label}</span>
-                  ))}
-                </div>
-                <div className="flex items-end h-32 gap-2">
-                  {trends.map((t: any, i: number) => (
-                    <div key={i} className="flex flex-col items-center">
-                      <div
-                        className="bg-[#FF96B2] dark:bg-[#ffb6ce] w-6 rounded-t"
-                        style={{ height: `${parseFloat(t.avgRating) * 20}px` }}
-                        title={`Média: ${t.avgRating}`}
-                      ></div>
-                      <span className="text-xs mt-1">{t.avgRating}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={trends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" tick={{ fill: "#313131" }} />
+                  <YAxis domain={[0, 5]} tick={{ fill: "#313131" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#fff", borderRadius: 8, border: "1px solid #FF96B2" }}
+                    labelStyle={{ color: "#FF96B2" }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="avgRating"
+                    name="Média"
+                    stroke="#FF96B2"
+                    strokeWidth={3}
+                    dot={{ r: 6, fill: "#FF96B2" }}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Volume de Avaliações */}
       <Card className="border-0 shadow-lg bg-white dark:bg-[#23232A]">
         <CardHeader>
           <CardTitle className="text-[#313131] dark:text-white">Volume de Avaliações</CardTitle>
           <CardDescription className="dark:text-white/70">Quantidade de avaliações recebidas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex flex-col items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
+          <div className="h-72 flex flex-col items-center justify-center bg-[#EFEFEF] dark:bg-[#23232A]/70 rounded-lg">
             {loading && <div>Carregando...</div>}
             {!loading && trends.length === 0 && <div>Nenhum dado encontrado.</div>}
             {!loading && trends.length > 0 && (
-              <div className="w-full">
-                <div className="flex justify-between mb-2">
-                  {trends.map((t: any, i: number) => (
-                    <span key={i} className="text-xs text-[#313131]/70 dark:text-white/70">{t.label}</span>
-                  ))}
-                </div>
-                <div className="flex items-end h-32 gap-2">
-                  {trends.map((t: any, i: number) => (
-                    <div key={i} className="flex flex-col items-center">
-                      <div
-                        className="bg-[#FF96B2] dark:bg-[#ffb6ce] w-6 rounded-t"
-                        style={{ height: `${t.reviews * 4}px` }}
-                        title={`Avaliações: ${t.reviews}`}
-                      ></div>
-                      <span className="text-xs mt-1">{t.reviews}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={trends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" tick={{ fill: "#313131" }} />
+                  <YAxis allowDecimals={false} tick={{ fill: "#313131" }} />
+                  <Tooltip
+                    contentStyle={{ background: "#fff", borderRadius: 8, border: "1px solid #FF96B2" }}
+                    labelStyle={{ color: "#FF96B2" }}
+                  />
+                  <Legend />
+                  <Bar dataKey="reviews" name="Avaliações" fill="#FF96B2" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
         </CardContent>
