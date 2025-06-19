@@ -19,7 +19,7 @@ interface LocalUser {
 
 // Helper function para exibir links de navegação com base na role
 function renderLinks(user?: LocalUser | null, theme?: string) {
-  const commonLinkClass = `${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2]"`
+  const commonLinkClass = `${theme === "dark" ? "text-white" : "text-[#313131]"} hover:text-[#FF96B2] cursor-pointer`
   if (!user) {
     return (
       <>
@@ -55,9 +55,11 @@ function renderLinks(user?: LocalUser | null, theme?: string) {
         <>
           <Link href="/admin" className={commonLinkClass}>Dashboard</Link>
           <Link href="/my-salon" className={commonLinkClass}>Meu Salão</Link>
-          <Link href="/appoint" className={commonLinkClass}>Agendamentos</Link>
-          <Link href="/services" className={commonLinkClass}>Serviços</Link>
-          <Link href="/report" className={commonLinkClass}>Relatórios</Link>
+          <Link href="/admin/appointments" className={commonLinkClass}>Agendamentos</Link>
+          <Link href="/admin/services" className={commonLinkClass}>Serviços</Link>
+          <Link href="/admin/professionals" className={commonLinkClass}>Profissionais</Link>
+          <Link href="/admin/clients" className={commonLinkClass}>Clientes</Link>
+          <Link href="/admin/reports" className={commonLinkClass}>Relatórios</Link>
         </>
       )
     default:
@@ -200,7 +202,7 @@ export function Navbar() {
                     localStorage.removeItem("user");
                     window.dispatchEvent(new Event("userChanged"));
                     setLocalUser(null);
-                    window.location.href = "/auth/login"; 
+                    window.location.href = "/auth/login";
                   }}
                   className={`${theme === "dark" ? "text-white hover:text-[#FF96B2]" : "text-[#313131] hover:text-[#FF96B2]"}`}
                 >

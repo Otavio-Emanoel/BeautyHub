@@ -31,6 +31,8 @@ function ProfileSection() {
   })
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [showHireModal, setShowHireModal] = useState(false)
+  const [showCheckSalonModal, setShowCheckSalonModal] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
 
@@ -127,12 +129,11 @@ function ProfileSection() {
     router.push("/auth/login")
   }
 
-
-
-
   if (loading) return <div>Carregando...</div>
   if (error) return <div className="text-red-500">{error}</div>
   if (!profileData) return <div>Usuário não encontrado</div>
+ 
+
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
@@ -162,10 +163,77 @@ function ProfileSection() {
               value={profileData.avatar}
               onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
             />
-            {/* <p className="text-xs text-[#313131]/50 dark:text-white/50">Recomendado: 400x400px, máximo 2MB</p> */}
+          </div>
+          {/* Botões para contratação */}
+          <div className="flex flex-col gap-2 mt-4">
+            <Button
+              className="bg-[#FF96B2] dark:bg-[#FF5C8A] text-white"
+              onClick={() => setShowHireModal(true)}
+            >
+              Quero ser contratado por um salão
+            </Button>
+            <Button
+              variant="outline"
+              className="border-[#FF96B2] dark:border-[#FF5C8A] text-[#FF96B2] dark:text-[#FF5C8A] hover:bg-[#FF96B2] hover:text-white dark:hover:bg-[#FF5C8A] dark:hover:text-white"
+              onClick={() => setShowCheckSalonModal(true)}
+            >
+              Verificar se fui contratado por um salão
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal: Quero ser contratado */}
+      <Dialog open={showHireModal} onOpenChange={setShowHireModal}>
+        <DialogContent className="bg-white dark:bg-[#232326] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Quero ser contratado por um salão</DialogTitle>
+            <DialogDescription>
+              Em breve você poderá se candidatar para trabalhar em um salão de beleza pelo sistema!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 text-[#313131] dark:text-white">
+            <p>
+              Aqui você poderá enviar seu interesse para salões parceiros e acompanhar o status da sua candidatura.
+            </p>
+            <p className="mt-2 text-sm text-[#FF96B2] dark:text-[#FF5C8A]">
+              (Funcionalidade em desenvolvimento)
+            </p>
+          </div>
+          <Button
+            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] text-white mt-2"
+            onClick={() => setShowHireModal(false)}
+          >
+            Fechar
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Verificar contratação */}
+      <Dialog open={showCheckSalonModal} onOpenChange={setShowCheckSalonModal}>
+        <DialogContent className="bg-white dark:bg-[#232326] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verificar contratação por salão</DialogTitle>
+            <DialogDescription>
+              Aqui você poderá ver se algum salão já te contratou oficialmente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 text-[#313131] dark:text-white">
+            <p>
+              Em breve será possível visualizar o status da sua contratação e o nome do salão que te contratou.
+            </p>
+            <p className="mt-2 text-sm text-[#FF96B2] dark:text-[#FF5C8A]">
+              (Funcionalidade em desenvolvimento)
+            </p>
+          </div>
+          <Button
+            className="w-full bg-[#FF96B2] dark:bg-[#FF5C8A] text-white mt-2"
+            onClick={() => setShowCheckSalonModal(false)}
+          >
+            Fechar
+          </Button>
+        </DialogContent>
+      </Dialog>
       {/* Formulário de perfil */}
       <Card className="lg:col-span-2 border-0 shadow-lg bg-white dark:bg-[#232326]">
         <CardHeader>
